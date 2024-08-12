@@ -42,6 +42,7 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     printf("PUNCTUATOR: %s at line : %d\n", yytext,yylineno++);
 }
 
+    /******* COMMENTS *******/ 
 {COMMENT}   { printf("COMMENT at line : %d\n",yylineno++); }
 {MCOMMENT}  { printf("MULTILINE COMMENT at line : %d\n",yylineno++); }
 
