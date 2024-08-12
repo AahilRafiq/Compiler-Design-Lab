@@ -5,14 +5,15 @@
 #include <stdbool.h>
 
 int yylineno;
+int error_count = 0;
 
 #define TABLE_SIZE 10000
 
-// Move struct definitions to the top
 struct Token {
     char *name;
     char *type;
     int lineno;
+    int count;
 };
 
 struct HashItem {
@@ -28,7 +29,6 @@ struct HashTable {
 
 typedef struct HashTable HashTable;
 
-// Function prototypes
 HashTable* create_table();
 void insert(HashTable* table, const char* key, struct Token* value);
 void* get(HashTable* table, const char* key);
@@ -36,12 +36,12 @@ void remove_item(HashTable* table, const char* key);
 void free_table(HashTable* table);
 void print_hashtable(HashTable* table);
 
-// Global variable declaration (without initialization)
 HashTable* hashtable;
 
 %}
 
-/* Definitions */
+%option yylineno
+
 DIGIT       [0-9]
 LETTER      [a-zA-Z_]
 ID          {LETTER}({LETTER}|{DIGIT})*
@@ -51,17 +51,23 @@ CHAR        '(\\.|[^\\'])'
 STRING      \"(\\.|[^\\"\n])*\"
 COMMENT     "//".*
 MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
+
 %%
 
     /******** KEYWORDS ******/
 "auto"|"break"|"case"|"char"|"const"|"continue"|"default"|"do"|"double"|"else"|"enum"|"extern"|"float"|"for"|"goto"|"if"|"int"|"long"|"register"|"return"|"short"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"void"|"volatile"|"while" {
     printf("KEYWORD: %s at line : %d\n", yytext, yylineno);
-    struct Token* token = (struct Token*)malloc(sizeof(struct Token));
-    token->name = strdup(yytext);
-    token->type = "KEYWORD";
-    token->lineno = yylineno;
-    insert(hashtable, yytext, token);
-    yylineno++;
+    struct Token* token = get(hashtable, yytext);
+    if (token == NULL) {
+        token = (struct Token*)malloc(sizeof(struct Token));
+        token->name = strdup(yytext);
+        token->type = "KEYWORD";
+        token->lineno = yylineno;
+        token->count = 1;
+        insert(hashtable, yytext, token);
+    } else {
+        token->count++;
+    }
 }
 
 {ID}        { 
@@ -70,8 +76,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "IDENTIFIER";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
 {INTEGER}   { 
@@ -80,8 +86,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "INTEGER";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
 {FLOAT}     { 
@@ -90,8 +96,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "FLOAT";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
 {CHAR}      { 
@@ -100,8 +106,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "CHAR";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
 {STRING}    { 
@@ -110,8 +116,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "STRING";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
     /******** OPERATORS ******/
@@ -121,8 +127,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "OPERATOR";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
     /******** ASSIGNMENT ******/
@@ -132,8 +138,8 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "ASSIGNMENT";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
     /******** PUNCTUATORS ******/
@@ -143,16 +149,22 @@ MCOMMENT    "/*"([^*]|"*"+[^*/])*"*"+"/"
     token->name = strdup(yytext);
     token->type = "PUNCTUATOR";
     token->lineno = yylineno;
+    token->count = 1;
     insert(hashtable, yytext, token);
-    yylineno++;
 }
 
     /******* COMMENTS *******/ 
-{COMMENT}   { printf("COMMENT at line : %d\n", yylineno++); }
-{MCOMMENT}  { printf("MULTILINE COMMENT at line : %d\n", yylineno++); }
+{COMMENT}   { printf("COMMENT at line : %d\n", yylineno); }
+{MCOMMENT}  { printf("MULTILINE COMMENT at line : %d\n", yylineno); }
 
-[ \t\v\n\f] ;
-. ;
+[ \t\v\f]+  { /* Ignore whitespace */ }
+\n          { yylineno++; }
+
+    /******* ERROR HANDLING *******/
+. {
+    printf("Error: Unexpected character '%s' at line %d\n", yytext, yylineno);
+    error_count++;
+}
 
 %%
 
@@ -245,7 +257,11 @@ void print_hashtable(HashTable* table) {
         printf("\n--- %s ---\n", types[t]);
         for (int i = 0; i < TABLE_SIZE; i++) {
             if (table->items[i].is_occupied && strcmp(table->items[i].value->type, types[t]) == 0) {
-                printf("%s (line %d)\n", table->items[i].value->name, table->items[i].value->lineno);
+                if (strcmp(types[t], "KEYWORD") == 0 || strcmp(types[t], "IDENTIFIER") == 0) {
+                    printf("%s (line %d, count: %d)\n", table->items[i].value->name, table->items[i].value->lineno, table->items[i].value->count);
+                } else {
+                    printf("%s (line %d)\n", table->items[i].value->name, table->items[i].value->lineno);
+                }
             }
         }
     }
@@ -254,10 +270,21 @@ void print_hashtable(HashTable* table) {
 int main() {
     hashtable = create_table();
     yyin = fopen("source.c", "r");
+    if (yyin == NULL) {
+        printf("Error: Cannot open file 'source.c'\n");
+        return 1;
+    }
     yylex();
     fclose(yyin);
 
     print_hashtable(hashtable);
     free_table(hashtable);
+
+    if (error_count > 0) {
+        printf("\nTotal errors found: %d\n", error_count);
+    } else {
+        printf("\nNo errors found.\n");
+    }
+
     return 0;
 }
