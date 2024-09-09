@@ -7,6 +7,7 @@
 // Define the tables
 struct ConstantTable CT[1000];
 struct SymbolTable ST[1000];
+extern int yylineno;
 
 // Hash function to generate hash values for the strings
 unsigned long hash(unsigned char *str) {
@@ -104,7 +105,7 @@ void insert_SymbolTable(char *name, char *class) {
         if (ST[val].exist == 0) {
             strcpy(ST[val].symbol_name, name);
             strcpy(ST[val].class, class);
-            ST[val].line_number = 0; // Modify as needed
+            ST[val].line_number = yylineno; 
             ST[val].exist = 1;
             return;
         }
@@ -162,15 +163,24 @@ void insert_SymbolTable_line(char *str1, int line) {
     }
 }
 
-// Print the Symbol Table
+#include <stdio.h>
+
+void printSeparator() {
+    printf("+------------+--------------------+------------+------------+------------+------------+------------+\n");
+}
+
 void printSymbolTable() {
-    printf("%10s | %18s | %10s | %10s | %10s | %10s | %10s\n",
+    printSeparator();
+    printf("| %10s | %18s | %10s | %10s | %10s | %10s | %10s |\n",
            "SYMBOL", "CLASS", "TYPE", "VALUE", "DIMENSIONS", "PARAMETERS", "LINE NO");
+    printSeparator();
     for (int i = 0; i < 1000; ++i) {
         if (ST[i].exist == 0)
             continue;
-        printf("%10s | %18s | %10s | %10s | %10s | %10s | %d\n",
+        printf("| %10s | %18s | %10s | %10s | %10s | %10s | %10d |\n",
                ST[i].symbol_name, ST[i].class, ST[i].symbol_type, ST[i].value,
                ST[i].array_dimensions, ST[i].parameters, ST[i].line_number);
     }
+    printSeparator();
 }
+

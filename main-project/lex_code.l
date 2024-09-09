@@ -9,6 +9,7 @@
 	char current_value[20];
     char current_function[20];
 	char previous_operator[20];
+	int yylineno;
 	int flag;
 
 %}
