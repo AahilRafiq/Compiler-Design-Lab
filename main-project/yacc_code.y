@@ -322,7 +322,6 @@ void printConstantTable();
 
 int main()
 {
-	yyin = fopen("test15.c", "r");
 	yyparse();
 
 	if(flag == 0)
