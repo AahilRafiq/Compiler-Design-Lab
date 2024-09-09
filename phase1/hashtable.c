@@ -37,7 +37,6 @@ void insertItem(HashTable* table, const char* key, void* value) {
     
     while (table->items[index].is_occupied) {
         if (strcmp(table->items[index].key, key) == 0) {
-            // Update existing key
             table->items[index].value = value;
             return;
         }

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define TABLE_SIZE 100
+#define TABLE_SIZE 100000
 
 typedef struct HashItem HashItem;
 typedef struct HashTable HashTable;
