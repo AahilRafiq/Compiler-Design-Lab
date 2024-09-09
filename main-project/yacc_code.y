@@ -1,15 +1,16 @@
 %{
 	void yyerror(char* s);
 	int yylex();
-	#include "stdio.h"
-	#include "stdlib.h"
-	#include "ctype.h"
-	#include "string.h"
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <ctype.h>
+	#include <string.h>
+	#include "lib/table.h"
 	void insert_type();
 	void insert_value();
 	void insert_dimensions();
 	void insert_parameters();
-	extern int flag=0;
+	extern int flag;
 	int insert_flag = 0;
 
 	extern char current_identifier[20];
