@@ -34,22 +34,9 @@ IN "include"
 "//".*  { }
 
 "/*"             { BEGIN MLCOMMENT; }
-<MLCOMMENT>"/*"		{ 
-	++nested_count; 
-	check_nested = 1;
-}	
-<MLCOMMENT>"*"+"/"  { 
-		if (nested_count) --nested_count;
-		else{ if(check_nested){
-			check_nested = 0;
-			BEGIN INITIAL;
-		}
-		else{
-			BEGIN INITIAL;
-		}
-	} 
-}
-<MLCOMMENT>"*"+         ; 
+<MLCOMMENT>"/*"	{}
+<MLCOMMENT>"*"+"/"  {}
+<MLCOMMENT>"*"+      ; 
 <MLCOMMENT>[^/*\n]+	;
 <MLCOMMENT>[/]    ;
 <MLCOMMENT>\n     ;
