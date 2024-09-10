@@ -24,17 +24,17 @@ struct SymbolTable {
 // Function declarations
 unsigned long hash(unsigned char *str);
 
-int search_ConstantTable(char* str);
-void insert_ConstantTable(char* name, char* type);
+int search_const_table(char* str);
+void insert_const_table(char* name, char* type);
 void printConstantTable();
 
 int search_SymbolTable(char* str);
-void insert_SymbolTable(char* name, char* class);
-void insert_SymbolTable_type(char *str1, char *str2);
-void insert_SymbolTable_value(char *str1, char *str2);
-void insert_SymbolTable_arraydim(char *str1, char *dim);
-void insert_SymbolTable_funcparam(char *str1, char *param);
-void insert_SymbolTable_line(char *str1, int line);
+void insert_symbol_table(char* name, char* class);
+void insert_symbol_table_type(char *str1, char *str2);
+void insert_symbol_table_value(char *str1, char *str2);
+void insert_symbol_table_arraydim(char *str1, char *dim);
+void insert_symbol_table_funcparam(char *str1, char *param);
+void insert_symbol_table_line(char *str1, int line);
 void printSymbolTable();
 
 #endif // TABLE_H

@@ -47,39 +47,39 @@ IN "include"
 
 
 
-"char"		{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword"); return CHAR;}
-"double"	{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword"); return DOUBLE;}
-"else"		{ insert_SymbolTable_line(yytext, yylineno); insert_SymbolTable(yytext, "Keyword"); return ELSE;}
-"float"		{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");return FLOAT;}
-"while"		{ insert_SymbolTable(yytext, "Keyword"); return WHILE;}
-"do"		{ insert_SymbolTable(yytext, "Keyword"); return DO;}
-"for"		{ insert_SymbolTable(yytext, "Keyword"); return FOR;}
-"if"		{ insert_SymbolTable(yytext, "Keyword"); return IF;}
-"int"		{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");return INT;}
-"long"		{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");  return LONG;}
-"return"	{ insert_SymbolTable(yytext, "Keyword");  return RETURN;}
-"short"		{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");  return SHORT;}
-"signed"	{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");  return SIGNED;}
-"sizeof" 	{ insert_SymbolTable(yytext, "Keyword");  return SIZEOF;}
-"struct" 	{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");  return STRUCT;}
-"unsigned"	{ insert_SymbolTable(yytext, "Keyword");  return UNSIGNED;}
-"void"		{ strcpy(current_type,yytext); insert_SymbolTable(yytext, "Keyword");  return VOID;}
-"break"		{ insert_SymbolTable(yytext, "Keyword");  return BREAK;}
-"continue"	{ insert_SymbolTable(yytext, "Keyword");  return CONTINUE;}
-"goto"		{ insert_SymbolTable(yytext, "Keyword");  return GOTO;}
-"switch"	{ insert_SymbolTable(yytext, "Keyword");  return SWITCH;}
-"case"		{ insert_SymbolTable(yytext, "Keyword");  return CASE;}
-"default"	{ insert_SymbolTable(yytext, "Keyword");  return DEFAULT;}
+"char"		{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword"); return CHAR;}
+"double"	{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword"); return DOUBLE;}
+"else"		{ insert_symbol_table_line(yytext, yylineno); insert_symbol_table(yytext, "Keyword"); return ELSE;}
+"float"		{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");return FLOAT;}
+"while"		{ insert_symbol_table(yytext, "Keyword"); return WHILE;}
+"do"		{ insert_symbol_table(yytext, "Keyword"); return DO;}
+"for"		{ insert_symbol_table(yytext, "Keyword"); return FOR;}
+"if"		{ insert_symbol_table(yytext, "Keyword"); return IF;}
+"int"		{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");return INT;}
+"long"		{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");  return LONG;}
+"return"	{ insert_symbol_table(yytext, "Keyword");  return RETURN;}
+"short"		{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");  return SHORT;}
+"signed"	{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");  return SIGNED;}
+"sizeof" 	{ insert_symbol_table(yytext, "Keyword");  return SIZEOF;}
+"struct" 	{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");  return STRUCT;}
+"unsigned"	{ insert_symbol_table(yytext, "Keyword");  return UNSIGNED;}
+"void"		{ strcpy(current_type,yytext); insert_symbol_table(yytext, "Keyword");  return VOID;}
+"break"		{ insert_symbol_table(yytext, "Keyword");  return BREAK;}
+"continue"	{ insert_symbol_table(yytext, "Keyword");  return CONTINUE;}
+"goto"		{ insert_symbol_table(yytext, "Keyword");  return GOTO;}
+"switch"	{ insert_symbol_table(yytext, "Keyword");  return SWITCH;}
+"case"		{ insert_symbol_table(yytext, "Keyword");  return CASE;}
+"default"	{ insert_symbol_table(yytext, "Keyword");  return DEFAULT;}
 
-("\"")[^\n\"]*("\"")                         {strcpy(current_value,yytext); insert_ConstantTable(yytext,"String Constant"); return string_constant;}        
+("\"")[^\n\"]*("\"")                         {strcpy(current_value,yytext); insert_const_table(yytext,"String Constant"); return string_constant;}        
 ("\"")[^\n\"]*                               { printf("Line No. %d ERROR: UNCLOSED STRING - %s\n", yylineno, yytext); return 0;}
-("\'")(("\\"({escape_sequences}))|.)("\'")   {strcpy(current_value,yytext); insert_ConstantTable(yytext,"Character Constant"); return character_constant;}
+("\'")(("\\"({escape_sequences}))|.)("\'")   {strcpy(current_value,yytext); insert_const_table(yytext,"Character Constant"); return character_constant;}
 ("\'")(((("\\")[^0abfnrtv\\\"\'][^\n\']*))|[^\n\''][^\n\'']+)("\'") {printf("Line No. %d ERROR: NOT A CHARACTER - %s\n", yylineno, yytext); return 0; }
-{num}+(\.{num}+)?e{num}+   		        {strcpy(current_value,yytext); insert_ConstantTable(yytext, "Floating Constant"); return float_constant;} 
-{num}+\.{num}+                		    {strcpy(current_value,yytext); insert_ConstantTable(yytext, "Floating Constant"); return float_constant;}                                             
-{num}+                           	   	{strcpy(current_value,yytext); insert_ConstantTable(yytext, "Number Constant"); return integer_constant;}    
-(_|{alpha})({alpha}|{alpha}|_)*  		{strcpy(current_identifier,yytext);insert_SymbolTable(yytext,"Identifier");  return identifier;}
-(_|{alpha})({alpha}|{alpha}|_)*/\[  	{strcpy(current_identifier,yytext);insert_SymbolTable(yytext,"Array Identifier");  return identifier;}
+{num}+(\.{num}+)?e{num}+   		        {strcpy(current_value,yytext); insert_const_table(yytext, "Floating Constant"); return float_constant;} 
+{num}+\.{num}+                		    {strcpy(current_value,yytext); insert_const_table(yytext, "Floating Constant"); return float_constant;}                                             
+{num}+                           	   	{strcpy(current_value,yytext); insert_const_table(yytext, "Number Constant"); return integer_constant;}    
+(_|{alpha})({alpha}|{alpha}|_)*  		{strcpy(current_identifier,yytext);insert_symbol_table(yytext,"Identifier");  return identifier;}
+(_|{alpha})({alpha}|{alpha}|_)*/\[  	{strcpy(current_identifier,yytext);insert_symbol_table(yytext,"Array Identifier");  return identifier;}
 {ws}										 ;
 
 "+"	 {return *yytext;}

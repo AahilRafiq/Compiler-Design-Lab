@@ -311,11 +311,11 @@ constant
 extern FILE *yyin;
 extern int yylineno;
 extern char *yytext;
-void insert_SymbolTable_type(char *,char *);
-void insert_SymbolTable_value(char *, char *);
-void insert_ConstantTable(char *, char *);
-void insert_SymbolTable_arraydim(char *, char *);
-void insert_SymbolTable_funcparam(char *, char *);
+void insert_symbol_table_type(char *,char *);
+void insert_symbol_table_value(char *, char *);
+void insert_const_table(char *, char *);
+void insert_symbol_table_arraydim(char *, char *);
+void insert_symbol_table_funcparam(char *, char *);
 void printSymbolTable();
 void printConstantTable();
 
@@ -346,24 +346,24 @@ void yyerror(char *s)
 
 void insert_type()
 {
-	insert_SymbolTable_type(current_identifier,current_type);
+	insert_symbol_table_type(current_identifier,current_type);
 }
 
 void insert_value()
 {	
 	if(strcmp(previous_operator, "=") == 0)
-	{	insert_SymbolTable_value(current_identifier,current_value);
+	{	insert_symbol_table_value(current_identifier,current_value);
 	}
 }	
 
 void insert_dimensions()
 {
-    insert_SymbolTable_arraydim(current_identifier, current_value);
+    insert_symbol_table_arraydim(current_identifier, current_value);
 }
 
 void insert_parameters()
 {
-    insert_SymbolTable_funcparam(current_function, current_identifier);
+    insert_symbol_table_funcparam(current_function, current_identifier);
 }
 
 int yywrap()
