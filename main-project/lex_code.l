@@ -33,14 +33,8 @@ IN "include"
 "#define"[ ]+(_|{alpha})({alphanum})*[ ]*(.)+   { } 
 "//".*  { }
 
-"/*"             { BEGIN MLCOMMENT; }
-<MLCOMMENT>"/*"	{}
-<MLCOMMENT>"*"+"/"  {}
-<MLCOMMENT>"*"+      ; 
-<MLCOMMENT>[^/*\n]+	;
-<MLCOMMENT>[/]    ;
-<MLCOMMENT>\n     ;
-<MLCOMMENT><<EOF>> { printf("Line No. %d ERROR: MULTI LINE COMMENT NOT CLOSED\n", yylineno); return 0;}
+"/*"([^*]|\*+[^/*])*\*+"/" {}
+
 
 "[" {return *yytext;}
 "]" {return *yytext;}

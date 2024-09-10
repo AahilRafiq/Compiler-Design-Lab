@@ -66,14 +66,17 @@ void insert_ConstantTable(char *name, char *type) {
 
 // Print the Constant Table
 void printConstantTable() {
-    printf("%20s | %20s\n", "CONSTANT", "TYPE");
-    for (int i = 0; i < 1000; ++i) {
-        if (CT[i].exist == 0)
-            continue;
+    printf("%-20s | %-20s\n", "CONSTANT", "TYPE");
+    printf("%s\n", "----------------------------------------------");
 
-        printf("%20s | %20s\n", CT[i].constant_name, CT[i].constant_type);
+    for (int i = 0; i < 1000; ++i) {
+        if (CT[i].exist == 0) {
+            continue;
+        }
+        printf("%-20s | %-20s\n", CT[i].constant_name, CT[i].constant_type);
     }
 }
+
 
 // Search in the Symbol Table
 int search_SymbolTable(char *str) {
