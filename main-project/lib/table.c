@@ -70,10 +70,12 @@ int search_SymbolTable(char *str) {
     if (sym_T[val].exist == 0) {
         return 0;
     } else if (strcmp(sym_T[val].symbol_name, str) == 0) {
+        sym_T[val].line_number[sym_T[val].last_line_index++] = yylineno;
         return 1;
     } else {
         for (int i = val + 1; i != val; i = (i + 1) % 1000) {
             if (strcmp(sym_T[i].symbol_name, str) == 0) {
+                sym_T[i].line_number[sym_T[i].last_line_index++] = yylineno;
                 return 1;
             }
         }
@@ -91,7 +93,12 @@ void insert_symbol_table(char *name, char *class) {
         if (sym_T[val].exist == 0) {
             strcpy(sym_T[val].symbol_name, name);
             strcpy(sym_T[val].class, class);
-            sym_T[val].line_number = yylineno; 
+
+            for(int i=0 ; i<100 ; i++) sym_T[val].line_number[i] = -1;
+
+            sym_T[val].line_number[0] = yylineno; 
+            sym_T[val].last_line_index = 1;
+
             sym_T[val].exist = 1;
             return;
         }
@@ -100,6 +107,12 @@ void insert_symbol_table(char *name, char *class) {
             if (sym_T[i].exist == 0) {
                 strcpy(sym_T[i].symbol_name, name);
                 strcpy(sym_T[i].class, class);
+
+                for(int i=0 ; i<100 ; i++) sym_T[i].line_number[i] = -1;
+
+                sym_T[i].line_number[0] = yylineno; 
+                sym_T[i].last_line_index = 1;
+
                 sym_T[i].exist = 1;
                 break;
             }
@@ -152,7 +165,8 @@ void insert_symbol_table_funcparam(char *str1, char *param) {
 void insert_symbol_table_line(char *str1, int line) {
     for (int i = 0; i < 1000; i++) {
         if (strcmp(sym_T[i].symbol_name, str1) == 0) {
-            sym_T[i].line_number = line;
+            
+            sym_T[i].line_number[sym_T[i].last_line_index] = line;
         }
     }
 }
@@ -165,17 +179,30 @@ void printSeparator() {
     printf("+------------+--------------------+------------+------------+------------+------------+------------+\n");
 }
 
+
 void printSymbolTable() {
     printSeparator();
-    printf("| %10s | %18s | %10s | %10s | %10s | %10s | %10s |\n",
+    printf("| %-10s | %-18s | %-10s | %-10s | %-10s | %-10s | %-10s |\n",
            "SYMBOL", "CLASS", "TYPE", "VALUE", "DIMENSIONS", "PARAMETERS", "LINE NO");
     printSeparator();
+
     for (int i = 0; i < 1000; ++i) {
-        if (sym_T[i].exist == 0)
-            continue;
-        printf("| %10s | %18s | %10s | %10s | %10s | %10s | %10d |\n",
+        if (sym_T[i].symbol_name[0] == '\0') {
+            continue;  // Skip empty entries
+        }
+
+        printf("| %-10s | %-18s | %-10s | %-10s | %-10s | %-10s | ",
                sym_T[i].symbol_name, sym_T[i].class, sym_T[i].symbol_type, sym_T[i].value,
-               sym_T[i].array_dimensions, sym_T[i].parameters, sym_T[i].line_number);
+               sym_T[i].array_dimensions, sym_T[i].parameters);
+
+        // Print line numbers
+        for (int j = 0; j < sym_T[i].last_line_index; j++) {
+            printf("%d", sym_T[i].line_number[j]);
+            if (j < sym_T[i].last_line_index - 1) {
+                printf(",");
+            }
+        }
+        printf(" |\n");
     }
     printSeparator();
 }

@@ -17,7 +17,8 @@ struct SymbolTable {
     char class[100];
     char value[100];
     char parameters[100];
-    int line_number;
+    int line_number[100];
+    int last_line_index;
     int exist;
 };
 
