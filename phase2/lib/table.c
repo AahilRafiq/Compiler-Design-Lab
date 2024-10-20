@@ -1,123 +1,209 @@
+#include "table.h"
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#define MAX_TABLE_SIZE 1000000
-#define MAX_NAME_LENGTH 100
-#define MAX_TYPE_LENGTH 100
 
-struct table_entry
-{
-    char *name;
-    char *class;
-    char *type;
-    int line_no;
-    int scope_level;
-    int dimension;
-} typedef table_entry;
+struct ConstantTable const_T[1000];
+struct SymbolTable sym_T[1000];
+extern int yylineno;
+unsigned long hash(unsigned char *str);
 
-int hashfn(char *name)
-{
-    int hash = 0;
-    for (int i = 0; name[i] != '\0'; i++)
-    {
-        hash += name[i];
+int search_const_table(char *str) {
+    unsigned long temp_val = hash((unsigned char *)str);
+    int val = temp_val % 1000;
+
+    if (const_T[val].exist == 0) {
+        return 0;
+    } else if (strcmp(const_T[val].constant_name, str) == 0) {
+        return 1;
+    } else {
+        for (int i = val + 1; i != val; i = (i + 1) % 1000) {
+            if (strcmp(const_T[i].constant_name, str) == 0) {
+                return 1;
+            }
+        }
+        return 0;
     }
-    return hash % MAX_TABLE_SIZE; 
 }
 
-struct hash_table
-{
-    table_entry **table;
-} typedef hash_table;
+void insert_const_table(char *name, char *type) {
+    if (search_const_table(name)) {
+        return;
+    } else {
+        unsigned long temp_val = hash((unsigned char *)name);
+        int val = temp_val % 1000;
 
-hash_table *init_table()
-{
-    hash_table *table = (hash_table *)malloc(sizeof(hash_table));
-    if (!table) return NULL;  
-    table->table = (table_entry **)malloc(MAX_TABLE_SIZE * sizeof(table_entry*));
-    if (!table->table) {  
-        free(table);
-        return NULL;
-    }
-    for (int i = 0; i < MAX_TABLE_SIZE; i++)
-    {
-        table->table[i] = NULL;
-    }
-    return table;
-}
+        if (const_T[val].exist == 0) {
+            strcpy(const_T[val].constant_name, name);
+            strcpy(const_T[val].constant_type, type);
+            const_T[val].exist = 1;
+            return;
+        }
 
-void insert_entry(hash_table *ht, table_entry entry)
-{
-    int hash = hashfn(entry.name);
-
-    // WARNING : this assumes that table never fills
-    while (ht->table[hash] != NULL)
-        hash = (hash + 1) % MAX_TABLE_SIZE;
-
-    table_entry *e = (table_entry *)malloc(sizeof(table_entry));
-    if (!e) return;
-    *e = entry;
-    e->name = strdup(entry.name);
-    e->type = strdup(entry.type); 
-    e->class = strdup(entry.class);
-    ht->table[hash] = e;
-}
-
-table_entry *get_entry(hash_table *ht, char *name)
-{
-    int hash = hashfn(name);
-    int original_hash = hash; 
-
-    do {
-        if (ht->table[hash] == NULL) return NULL;  
-        if (strcmp(ht->table[hash]->name, name) == 0)
-            return ht->table[hash];
-        hash = (hash + 1) % MAX_TABLE_SIZE;
-    } while (hash != original_hash);  
-
-    return NULL;  
-}
-
-void free_table(hash_table *ht)
-{
-    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
-        if (ht->table[i]) {
-            free(ht->table[i]->name);
-            free(ht->table[i]->type);
-            free(ht->table[i]);
+        for (int i = val + 1; i != val; i = (i + 1) % 1000) {
+            if (const_T[i].exist == 0) {
+                strcpy(const_T[i].constant_name, name);
+                strcpy(const_T[i].constant_type, type);
+                const_T[i].exist = 1;
+                break;
+            }
         }
     }
-    free(ht->table);
-    free(ht);
 }
 
-void print_table(hash_table *ht)
-{
-    printf("--------------------------------------------------------------------------------------------------------------\n");
-    printf("| %-10s | %-20s | %-20s | %-20s | %-10s | %-10s | %-10s |\n", "No.", "Name", "Class", "Type", "Scope Level", "Line Number", "Dimension");
-    printf("--------------------------------------------------------------------------------------------------------------\n");
+void printConstantTable() {
+    printf("%-20s | %-20s\n", "CONSTANT", "TYPE");
+    printf("%s\n", "----------------------------------------------");
 
-    int count = 0;
-    int entry_no = 1; // Entry numbering starts from 1
+    for (int i = 0; i < 1000; ++i) {
+        if (const_T[i].exist == 0) {
+            continue;
+        }
+        printf("%-20s | %-20s\n", const_T[i].constant_name, const_T[i].constant_type);
+    }
+}
 
-    for (int i = 0; i < MAX_TABLE_SIZE; i++)
-    {
-        if (ht->table[i] != NULL)
-        {
-            printf("| %-10d | %-20s | %-20s | %-20s | %-10d | %-10d | %-10d |\n", 
-                    entry_no, 
-                    ht->table[i]->name, 
-                    ht->table[i]->class,    // New 'class' field
-                    ht->table[i]->type, 
-                    ht->table[i]->scope_level, 
-                    ht->table[i]->line_no, 
-                    ht->table[i]->dimension);
-            printf("--------------------------------------------------------------------------------------------------------------\n");
-            entry_no++; // Increment for next entry
-            count++;
+
+int search_SymbolTable(char *str) {
+    unsigned long temp_val = hash((unsigned char *)str);
+    int val = temp_val % 1000;
+
+    if (sym_T[val].exist == 0) {
+        return 0;
+    } else if (strcmp(sym_T[val].symbol_name, str) == 0) {
+        sym_T[val].line_number[sym_T[val].last_line_index++] = yylineno;
+        return 1;
+    } else {
+        for (int i = val + 1; i != val; i = (i + 1) % 1000) {
+            if (strcmp(sym_T[i].symbol_name, str) == 0) {
+                sym_T[i].line_number[sym_T[i].last_line_index++] = yylineno;
+                return 1;
+            }
+        }
+        return 0;
+    }
+}
+
+void insert_symbol_table(char *name, char *class) {
+    if (search_SymbolTable(name)) {
+        return;
+    } else {
+        unsigned long temp_val = hash((unsigned char *)name);
+        int val = temp_val % 1000;
+
+        if (sym_T[val].exist == 0) {
+            strcpy(sym_T[val].symbol_name, name);
+            strcpy(sym_T[val].class, class);
+
+            for(int i=0 ; i<100 ; i++) sym_T[val].line_number[i] = -1;
+
+            sym_T[val].line_number[0] = yylineno; 
+            sym_T[val].last_line_index = 1;
+
+            sym_T[val].exist = 1;
+            return;
+        }
+
+        for (int i = val + 1; i != val; i = (i + 1) % 1000) {
+            if (sym_T[i].exist == 0) {
+                strcpy(sym_T[i].symbol_name, name);
+                strcpy(sym_T[i].class, class);
+
+                for(int i=0 ; i<100 ; i++) sym_T[i].line_number[i] = -1;
+
+                sym_T[i].line_number[0] = yylineno; 
+                sym_T[i].last_line_index = 1;
+
+                sym_T[i].exist = 1;
+                break;
+            }
         }
     }
-    printf("Total entries: %d\n", count);
+}
+
+void insert_symbol_table_type(char *str1, char *str2) {
+    for (int i = 0; i < 1000; i++) {
+        if (strcmp(sym_T[i].symbol_name, str1) == 0) {
+            strcpy(sym_T[i].symbol_type, str2);
+        }
+    }
+}
+
+void insert_symbol_table_value(char *str1, char *str2) {
+    for (int i = 0; i < 1000; i++) {
+        if (strcmp(sym_T[i].symbol_name, str1) == 0) {
+            strcpy(sym_T[i].value, str2);
+        }
+    }
+}
+
+unsigned long hash(unsigned char *str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; 
+    }
+    return hash;
+}
+
+void insert_symbol_table_arraydim(char *str1, char *dim) {
+    for (int i = 0; i < 1000; i++) {
+        if (strcmp(sym_T[i].symbol_name, str1) == 0) {
+            strcpy(sym_T[i].array_dimensions, dim);
+        }
+    }
+}
+
+void insert_symbol_table_funcparam(char *str1, char *param) {
+    for (int i = 0; i < 1000; i++) {
+        if (strcmp(sym_T[i].symbol_name, str1) == 0) {
+            strcat(sym_T[i].parameters, " ");
+            strcat(sym_T[i].parameters, param);
+        }
+    }
+}
+
+void insert_symbol_table_line(char *str1, int line) {
+    for (int i = 0; i < 1000; i++) {
+        if (strcmp(sym_T[i].symbol_name, str1) == 0) {
+            
+            sym_T[i].line_number[sym_T[i].last_line_index] = line;
+        }
+    }
+}
+
+
+
+#include <stdio.h>
+
+void printSeparator() {
+    printf("+------------+--------------------+------------+------------+------------+------------+------------+\n");
+}
+
+
+void printSymbolTable() {
+    printSeparator();
+    printf("| %-10s | %-18s | %-10s | %-10s | %-10s | %-10s | %-10s |\n",
+           "SYMBOL", "CLASS", "TYPE", "VALUE", "DIMENSIONS", "PARAMETERS", "LINE NO");
+    printSeparator();
+
+    for (int i = 0; i < 1000; ++i) {
+        if (sym_T[i].symbol_name[0] == '\0') {
+            continue;  // Skip empty entries
+        }
+
+        printf("| %-10s | %-18s | %-10s | %-10s | %-10s | %-10s | ",
+               sym_T[i].symbol_name, sym_T[i].class, sym_T[i].symbol_type, sym_T[i].value,
+               sym_T[i].array_dimensions, sym_T[i].parameters);
+
+        // Print line numbers
+        for (int j = 0; j < sym_T[i].last_line_index; j++) {
+            printf("%d", sym_T[i].line_number[j]);
+            if (j < sym_T[i].last_line_index - 1) {
+                printf(",");
+            }
+        }
+        printf(" |\n");
+    }
+    printSeparator();
 }
 

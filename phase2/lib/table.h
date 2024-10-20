@@ -1,28 +1,41 @@
+// table.h
+
 #ifndef TABLE_H
 #define TABLE_H
-#define MAX_TABLE_SIZE 1000000
 
-struct table_entry {
-    char *name;
-    char *class;
-    char *type;
-    int scope_level;
-    int line_no;
-    int dimension;
-} typedef table_entry;
+// Structure definitions
+struct ConstantTable {
+    char constant_name[100];
+    char constant_type[100];
+    int exist;
+};
 
-int hashfn(char *name);
+struct SymbolTable {
+    char symbol_name[100];
+    char symbol_type[100];
+    char array_dimensions[100];
+    char class[100];
+    char value[100];
+    char parameters[100];
+    int line_number[100];
+    int last_line_index;
+    int exist;
+};
 
-struct hash_table {
-    table_entry* table[MAX_TABLE_SIZE];
-} typedef hash_table;
+// Function declarations
+unsigned long hash(unsigned char *str);
 
-hash_table *init_table();
+int search_const_table(char* str);
+void insert_const_table(char* name, char* type);
+void printConstantTable();
 
-void insert_entry(hash_table *ht , table_entry entry);
+int search_SymbolTable(char* str);
+void insert_symbol_table(char* name, char* class);
+void insert_symbol_table_type(char *str1, char *str2);
+void insert_symbol_table_value(char *str1, char *str2);
+void insert_symbol_table_arraydim(char *str1, char *dim);
+void insert_symbol_table_funcparam(char *str1, char *param);
+void insert_symbol_table_line(char *str1, int line);
+void printSymbolTable();
 
-table_entry *get_entry(hash_table *ht, char *name);
-
-void print_table(hash_table *ht);
-
-#endif
+#endif // TABLE_H

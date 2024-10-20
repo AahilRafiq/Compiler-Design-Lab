@@ -1,182 +1,393 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+	void yyerror(char* s);
+	int yylex();
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <ctype.h>
+	#include <string.h>
+	#include "lib/table.h"
+	void insert_type();
+	void insert_value();
+	void insert_dimensions();
+	void insert_parameters();
+	extern int flag;
+	int insert_flag = 0;
 
-extern int yylex();
-void yyerror(const char *s);
-
+	extern char current_identifier[20];
+	extern char current_type[20];
+	extern char current_value[20];
+	extern char current_function[20];
+	extern char previous_operator[20];
 %}
 
-%union {
-    int ival;
-    char *sval;
-}
+%nonassoc IF
+%token INT CHAR FLOAT DOUBLE LONG SHORT SIGNED UNSIGNED STRUCT
+%token RETURN MAIN
+%token VOID
+%token WHILE FOR DO 
+%token BREAK CONTINUE GOTO
+%token ENDIF
+%token SWITCH CASE DEFAULT
+%expect 2
 
-%token <ival> NUMBER
-%token <sval> IDENTIFIER STRING
-%token INT CHAR FLOAT DOUBLE VOID
-%token STRUCT UNION STATIC RETURN GOTO IF ELSE WHILE FOR DO BREAK CONTINUE SWITCH CASE DEFAULT
-%token PLUS MINUS MUL DIV MOD ASSIGN EQ NE LT LE GT GE AND OR NOT
-%token SEMICOLON COMMA LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET COLON
+%token identifier
+%token integer_constant string_constant float_constant character_constant
 
-%start program
+%nonassoc ELSE
+
+%right MOD_EQUAL
+%right MULTIPLY_EQUAL DIVIDE_EQUAL
+%right ADD_EQUAL SUBTRACT_EQUAL
+%right '='
+
+%left OR_OR
+%left AND_AND
+%left '^'
+%left EQUAL NOT_EQUAL
+%left LESS_EQUAL LESS GREAT_EQUAL GREAT
+%left '+' '-'
+%left '*' '/' '%'
+
+%right SIZEOF
+%right NOT
+%left INCREMENT DECREMENT 
+
+%start begin_parse
+
+%%
+begin_parse
+	: declarations;
+
+declarations
+	: declaration declarations 
+	| ;
+
+declaration
+	: variable_dec 
+	| function_dec
+	| structure_dec;
+
+structure_dec
+	: STRUCT identifier { insert_type(); } '{' structure_content '}' ';';
+
+structure_content 
+	: variable_dec structure_content 
+	| ;
+
+variable_dec
+	: datatype variables ';' 
+	| structure_initialize;
+
+structure_initialize 
+	: STRUCT identifier variables;
+
+variables
+	: identifier_name multiple_variables;
+
+multiple_variables
+	: ',' variables 
+	| ;
+
+identifier_name 
+	: identifier { insert_type(); } extended_identifier;
+
+extended_identifier 
+	: array_identifier 
+	| '=' { strcpy(previous_operator, "="); } expression;
+
+array_identifier
+	: '[' array_dims
+	| ;
+
+array_dims
+	: integer_constant { insert_dimensions(); } ']' initilization
+	| ']' string_initilization;
+
+initilization
+	: string_initilization
+	| array_initialization
+	| ;
+
+string_initilization
+	: '=' { strcpy(previous_operator, "="); } string_constant { insert_value(); };
+
+array_initialization
+	: '=' { strcpy(previous_operator, "="); } '{' array_values '}';
+
+array_values
+	: integer_constant multiple_array_values;
+
+multiple_array_values
+	: ',' array_values 
+	| ;
+
+datatype 
+	: INT 
+	| CHAR 
+	| FLOAT 
+	| DOUBLE 
+	| LONG long_grammar 
+	| SHORT short_grammar
+	| UNSIGNED unsigned_grammar 
+	| SIGNED signed_grammar
+	| VOID;
+
+unsigned_grammar 
+	: INT 
+	| LONG long_grammar 
+	| SHORT short_grammar 
+	| ;
+
+signed_grammar 
+	: INT 
+	| LONG long_grammar 
+	| SHORT short_grammar 
+	| ;
+
+long_grammar 
+	: INT 
+	| ;
+
+short_grammar 
+	: INT 
+	| ;
+
+function_dec
+	: function_datatype function_parameters;
+
+function_datatype
+	: datatype identifier '(' { strcpy(current_function, current_identifier); insert_type(); };
+
+function_parameters
+	: parameters ')' statement;
+
+parameters 
+	: datatype all_parameter_identifiers 
+	| ;
+
+all_parameter_identifiers 
+	: parameter_identifier multiple_parameters;
+
+multiple_parameters
+	: ',' parameters 
+	| ;
+
+parameter_identifier 
+	: identifier { insert_parameters(); insert_type(); } extended_parameter;
+
+extended_parameter
+	: '[' ']' 
+	| ;
+
+statement 
+	: expression_statment 
+	| multiple_statement 
+	| conditional_statements 
+	| iterative_statements 
+	| return_statement 
+	| break_statement 
+	| variable_dec;
+
+multiple_statement 
+	: '{' statments '}' ;
+
+statments 
+	: statement statments
+	| ;
+
+expression_statment 
+	: expression ';' 
+	| ';' ;
+
+conditional_statements 
+	: IF '(' simple_expression ')' statement extended_conditional_statements;
+
+extended_conditional_statements
+	: ELSE statement
+	| ;
+
+iterative_statements 
+	: WHILE '(' simple_expression ')' statement 
+	| FOR '(' for_initialization simple_expression ';' expression ')' 
+	| DO statement WHILE '(' simple_expression ')' ';';
+
+for_initialization
+	: variable_dec
+	| expression ';'
+	| ';' ;
+
+return_statement 
+	: RETURN return_suffix;
+
+return_suffix
+	: ';' 
+	| expression ';' ;
+
+break_statement 
+	: BREAK ';' ;
+
+expression 
+	: iden expressions
+	| simple_expression ;
+
+expressions
+	: '=' { strcpy(previous_operator, "="); } expression 
+	| ADD_EQUAL { strcpy(previous_operator, "+="); } expression 
+	| SUBTRACT_EQUAL { strcpy(previous_operator, "-="); } expression 
+	| MULTIPLY_EQUAL { strcpy(previous_operator, "*="); } expression 
+	| DIVIDE_EQUAL { strcpy(previous_operator, "/="); } expression 
+	| MOD_EQUAL { strcpy(previous_operator, "%="); } expression 
+	| INCREMENT 
+	| DECREMENT ;
+
+simple_expression 
+	: and_expression simple_expression_breakup;
+
+simple_expression_breakup 
+	: OR_OR and_expression simple_expression_breakup 
+	| ;
+
+and_expression 
+	: unary_relation_expression and_expression_breakup;
+
+and_expression_breakup
+	: AND_AND unary_relation_expression and_expression_breakup
+	| ;
+
+unary_relation_expression 
+	: NOT unary_relation_expression 
+	| regular_expression ;
+
+regular_expression 
+	: sum_expression regular_expression_breakup;
+
+regular_expression_breakup
+	: relational_operators sum_expression 
+	| ;
+
+relational_operators 
+	: GREAT_EQUAL { strcpy(previous_operator, ">="); }
+	| LESS_EQUAL { strcpy(previous_operator, "<="); }
+	| GREAT { strcpy(previous_operator, ">"); } 
+	| LESS { strcpy(previous_operator, "<"); }
+	| EQUAL { strcpy(previous_operator, "=="); }
+	| NOT_EQUAL { strcpy(previous_operator, "!="); };
+
+sum_expression 
+	: sum_expression sum_operators term 
+	| term ;
+
+sum_operators 
+	: '+' 
+	| '-' ;
+
+term
+	: term multiply_operators factor 
+	| factor ;
+
+multiply_operators 
+	: '*' 
+	| '/' 
+	| '%' ;
+
+factor 
+	: func 
+	| iden ;
+
+iden 
+	: identifier 
+	| iden extended_iden;
+
+extended_iden
+	: '[' expression ']' 
+	| '.' identifier;
+
+func 
+	: '(' { strcpy(previous_operator, "("); } expression ')' 
+	| func_call 
+	| constant;
+
+func_call
+	: identifier '(' { strcpy(previous_operator, "("); } arguments ')';
+
+arguments 
+	: arguments_list 
+	| ;
+
+arguments_list 
+	: expression extended_arguments;
+
+extended_arguments
+	: ',' expression extended_arguments 
+	| ;
+
+constant 
+	: integer_constant { insert_value(); } 
+	| string_constant { insert_value(); } 
+	| float_constant { insert_value(); } 
+	| character_constant { insert_value(); };
 
 %%
 
-program:
-    external_declaration_list
-    ;
+extern FILE *yyin;
+extern int yylineno;
+extern char *yytext;
+void insert_symbol_table_type(char *, char *);
+void insert_symbol_table_value(char *, char *);
+void insert_const_table(char *, char *);
+void insert_symbol_table_arraydim(char *, char *);
+void insert_symbol_table_funcparam(char *, char *);
+void printSymbolTable();
+void printConstantTable();
 
-external_declaration_list:
-    external_declaration
-    | external_declaration_list external_declaration
-    ;
+int main()
+{
+	yyparse();
 
-external_declaration:
-    function_definition
-    | declaration
-    ;
+	if (flag == 0)
+	{
+		printf("VALID PARSE\n");
+		printf("%30s SYMBOL TABLE \n", " ");
+		printf("%30s %s\n", " ", "------------");
+		printSymbolTable();
 
-function_definition:
-    type_specifier IDENTIFIER LPAREN parameter_list RPAREN compound_statement
-    ;
-
-parameter_list:
-    parameter_declaration
-    | parameter_list COMMA parameter_declaration
-    | /* empty */
-    ;
-
-parameter_declaration:
-    type_specifier IDENTIFIER
-    ;
-
-declaration:
-    type_specifier declarator_list SEMICOLON
-    ;
-
-type_specifier:
-    INT | CHAR | FLOAT | DOUBLE | VOID | STRUCT IDENTIFIER | UNION IDENTIFIER | STATIC
-    ;
-
-declarator_list:
-    declarator
-    | declarator_list COMMA declarator
-    ;
-
-declarator:
-    IDENTIFIER
-    | IDENTIFIER LBRACKET NUMBER RBRACKET
-    ;
-
-compound_statement:
-    LBRACE declaration_list statement_list RBRACE
-    ;
-
-declaration_list:
-    /* empty */
-    | declaration_list declaration
-    ;
-
-statement_list:
-    /* empty */
-    | statement_list statement
-    ;
-
-statement:
-    expression_statement
-    | compound_statement
-    | if_statement
-    | while_statement
-    | do_while_statement
-    | for_statement
-    | return_statement
-    | goto_statement
-    | labeled_statement
-    | break_statement
-    | continue_statement
-    | switch_statement
-    ;
-
-expression_statement:
-    expression SEMICOLON
-    | SEMICOLON
-    ;
-
-if_statement:
-    IF LPAREN expression RPAREN statement ELSE statement
-    | IF LPAREN expression RPAREN statement
-    ;
-
-while_statement:
-    WHILE LPAREN expression RPAREN statement
-    ;
-
-do_while_statement:
-    DO statement WHILE LPAREN expression RPAREN SEMICOLON
-    ;
-
-for_statement:
-    FOR LPAREN expression_statement expression_statement expression RPAREN statement
-    ;
-
-return_statement:
-    RETURN expression SEMICOLON
-    ;
-
-goto_statement:
-    GOTO IDENTIFIER SEMICOLON
-    ;
-
-labeled_statement:
-    IDENTIFIER COLON statement
-    ;
-
-break_statement:
-    BREAK SEMICOLON
-    ;
-
-continue_statement:
-    CONTINUE SEMICOLON
-    ;
-
-switch_statement:
-    SWITCH LPAREN expression RPAREN LBRACE case_list default_case RBRACE
-    ;
-
-case_list:
-    case_statement
-    | case_list case_statement
-    ;
-
-case_statement:
-    CASE NUMBER COLON statement_list
-    ;
-
-default_case:
-    DEFAULT COLON statement_list
-    | /* empty */
-    ;
-
-expression:
-    IDENTIFIER ASSIGN expression
-    | expression PLUS expression
-    | expression MINUS expression
-    | expression MUL expression
-    | expression DIV expression
-    | expression MOD expression
-    | LPAREN expression RPAREN
-    | IDENTIFIER
-    | NUMBER
-    ;
-
-%%
-
-void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+		printf("\n\n%30s CONSTANT TABLE \n", " ");
+		printf("%30s %s\n", " ", "--------------");
+		printConstantTable();
+	}    
 }
 
-int main() {
-    return yyparse();
+void yyerror(char *s)
+{
+	printf("Line No. : %d %s %s\n", yylineno, s, yytext);
+	flag = 1;
+	printf("INVALID PARSE\n");
+}
+
+void insert_type()
+{
+	insert_symbol_table_type(current_identifier, current_type);
+}
+
+void insert_value()
+{    
+	if (strcmp(previous_operator, "=") == 0)
+	{
+		insert_symbol_table_value(current_identifier, current_value);
+	}
+}    
+
+void insert_dimensions()
+{
+	insert_symbol_table_arraydim(current_identifier, current_value);
+}
+
+void insert_parameters()
+{
+	insert_symbol_table_funcparam(current_function, current_identifier);
+}
+
+int yywrap()
+{
+	return 1;
 }
