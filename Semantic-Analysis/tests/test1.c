@@ -14,7 +14,9 @@ void main()
     int n,i;
     char ch;//Character Datatype
     int x;
-    int a[10];
+    int arr[10][2][3][4];
+    int gg[20];
+    char name[1][3];
     for (i=0;i<10;i++){
         if(i<10){
             int y;

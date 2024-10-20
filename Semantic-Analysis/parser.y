@@ -11,6 +11,7 @@
 	void insV();
 
 	int flag=0;
+	int curr_dimension = 0;
 	
 	extern char curid[20];
 	extern char curtype[20];
@@ -29,6 +30,7 @@
 	int check_declaration(char*, char *);
 	int check_params(char*);
 	int duplicate(char *s);
+	void insertSTDimension(char*, int);
 	int checkarray(char*);
 	char currfunctype[100];
 	char currfunc[100];
@@ -102,23 +104,24 @@ variable_declaration_list
 
 variable_declaration_identifier 
 			: identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi   
-			  | array_identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi;
+			  | array_identifier {curr_dimension=0;if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi;
 			
 			
 
 vdi : identifier_array_type | assignment_operator simple_expression  ; 
 
 identifier_array_type
-			: '[' initilization_params
+			: '[' initilization_params {curr_dimension++;insertSTDimension(curid,curr_dimension);}
 			| ;
 
 initilization_params
-			: integer_constant ']' initilization {if($$ < 1) {printf("Wrong array size\n"); exit(0);} }
-			| ']' string_initilization;
+			: integer_constant ']' identifier_array_type initilization {if($$ < 1) {printf("Wrong array size\n"); exit(0);} }
+			/* | integer_constant ']' identifier_array_type {if($$ < 1) {printf("Wrong array size\n"); exit(0);} } */
+			;
 
 initilization
 			: string_initilization
-			| array_initialization
+			| array_initialization 
 			| ;
 
 type_specifier 

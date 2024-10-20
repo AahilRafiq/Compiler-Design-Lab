@@ -10,6 +10,7 @@
 		char type[100];
 		char value[100];
 		int nesting_val;
+		int dimension;
 		int lineno;
 		int length;
 		int params_count;
@@ -24,7 +25,27 @@
 
 	int current_nesting = 0;
 	int params_count = 0;
+	extern int curr_dimension;
 	extern int yylval;
+	extern void deletedata (int );
+	extern int checkscope(char*);
+	extern int check_id_is_func(char *);
+	extern void insertST(char*, char*);
+	extern void insertSTnest(char*, int);
+	extern void insertSTparamscount(char*, int);
+	extern int getSTparamscount(char*);
+	extern int check_duplicate(char*);
+	extern int check_declaration(char*, char *);
+	extern int check_params(char*);
+	extern int duplicate(char *s);
+	extern void insertSTDimension(char*, int);
+	extern int checkarray(char*);
+	extern char currfunctype[100];
+	extern char currfunc[100];
+	extern char currfunccall[100];
+	extern void insertSTF(char*);
+	extern char gettype(char*,int);
+	extern char getfirst(char*);
 
 
 	int hash(char *str)
@@ -160,6 +181,17 @@
 			if(strcmp(ST[i].name,str1)==0 && ST[i].nesting_val == current_nesting)
 			{
 				strcpy(ST[i].value,str2);
+			}
+		}
+	}
+
+	void insertSTDimension(char *str1, int dim)
+	{
+		for(int i = 0 ; i < 1007 ; i++)
+		{
+			if(strcmp(ST[i].name,str1)==0)
+			{
+				ST[i].dimension = dim;
 			}
 		}
 	}
@@ -399,38 +431,45 @@
 	}
 
 	void printST()
-	{
-		printf("%10s | %15s | %10s | %10s | %10s | %15s | %10s |\n","symbol name", "Class", "Type","Value", "Line No.", "Nesting Count", "Count of Params");
-		for(int i=0;i<100;i++) {
-			printf("_");
-		}
-		printf("\n");
-		for(int i = 0 ; i < 1007 ; i++)
-		{
-			if(ST[i].length == 0)
-			{
-				continue;
-			}
-			printf("%10s | %15s | %10s | %10s | %10d | %15d | %10d |\n",ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].nesting_val, ST[i].params_count);
-		}
+{
+    // Boxed table header
+    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+    printf("| %-15s | %-20s | %-10s | %-10s | %-8s | %-15s | %-10s |\n",
+           "Symbol Name", "Class", "Type", "Value", "Line No.", "Count of Params", "Dimension");
+    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+
+    // Print each symbol in the table
+    for (int i = 0; i < 1007; i++) {
+        if (ST[i].length == 0) {
+            continue;
+        }
+        printf("| %-15s | %-20s | %-10s | %-10s | %-8d | %-15d | %-10d |\n",
+               ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].params_count, ST[i].dimension);
     }
 
+    // Bottom border of the table
+    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+}
 
-	void printCT()
-	{
-		printf("%10s | %15s\n","constant name", "constant type");
-		for(int i=0;i<85;i++) {
-			printf("_");
-		}
-		printf("\n");
-		for(int i = 0 ; i < 1007 ; i++)
-		{
-			if(CT[i].length == 0)
-				continue;
+void printCT()
+{
+    // Boxed table header for constants
+    printf("+-----------------+-----------------+\n");
+    printf("| %-15s | %-15s |\n", "Constant Name", "Constant Type");
+    printf("+-----------------+-----------------+\n");
 
-			printf("%10s | %15s\n",CT[i].name, CT[i].type);
-		}
-	}
+    // Print each constant in the table
+    for (int i = 0; i < 1007; i++) {
+        if (CT[i].length == 0) {
+            continue;
+        }
+        printf("| %-15s | %-15s |\n", CT[i].name, CT[i].type);
+    }
+
+    // Bottom border of the table
+    printf("+-----------------+-----------------+\n");
+}
+
 	char curid[20];
 	char curtype[20];
 	char curval[20];
