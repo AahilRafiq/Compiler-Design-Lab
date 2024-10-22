@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include "y.tab.h"
+	#define MAX_TABLE_SIZE 1000
 
 	struct symboltable
 	{
@@ -14,14 +15,14 @@
 		int lineno;
 		int length;
 		int params_count;
-	}ST[1007];
+	}ST[MAX_TABLE_SIZE];
 
 	struct constanttable
 	{
 		char name[100];
 		char type[100];
 		int length;
-	}CT[1007];
+	}CT[MAX_TABLE_SIZE];
 
 	int current_nesting = 0;
 	int params_count = 0;
@@ -54,9 +55,9 @@
 		for(int i = 0 ; i < strlen(str) ; i++)
 		{
 			value = 10*value + (str[i] - 'A');
-			value = value % 1007;
+			value = value % MAX_TABLE_SIZE;
 			while(value < 0)
-				value = value + 1007;
+				value = value + MAX_TABLE_SIZE;
 		}
 		return value;
 	}
@@ -75,7 +76,7 @@
 		}
 		else
 		{
-			for(int i = value + 1 ; i!=value ; i = (i+1)%1007)
+			for(int i = value + 1 ; i!=value ; i = (i+1)%MAX_TABLE_SIZE)
 			{
 				if(strcmp(ST[i].name,str)==0)
 				{
@@ -96,7 +97,7 @@
 			return 1;
 		else
 		{
-			for(int i = value + 1 ; i!=value ; i = (i+1)%1007)
+			for(int i = value + 1 ; i!=value ; i = (i+1)%MAX_TABLE_SIZE)
 			{
 				if(strcmp(CT[i].name,str)==0)
 				{
@@ -109,7 +110,7 @@
 
 	void insertSTline(char *str1, int line)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,str1)==0)
 			{
@@ -146,7 +147,7 @@
 
 			int pos = 0;
 
-			for (int i = value + 1 ; i!=value ; i = (i+1)%1007)
+			for (int i = value + 1 ; i!=value ; i = (i+1)%MAX_TABLE_SIZE)
 			{
 				if(ST[i].length == 0)
 				{
@@ -165,7 +166,7 @@
 
 	void insertSTtype(char *str1, char *str2)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,str1)==0)
 			{
@@ -176,7 +177,7 @@
 
 	void insertSTvalue(char *str1, char *str2)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,str1)==0 && ST[i].nesting_val == current_nesting)
 			{
@@ -187,7 +188,7 @@
 
 	void insertSTDimension(char *str1, int dim)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,str1)==0)
 			{
@@ -203,7 +204,7 @@
 		{
              int pos = 0;
              int value = hash(s);
-			for (int i = value + 1 ; i!=value ; i = (i+1)%1007)
+			for (int i = value + 1 ; i!=value ; i = (i+1)%MAX_TABLE_SIZE)
 			{
 				if(ST[i].length == 0)
 				{
@@ -221,7 +222,7 @@
 		}
 		else
 		{
-			for(int i = 0 ; i < 1007 ; i++)
+			for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 			{
 				if(strcmp(ST[i].name,s)==0 )
 				{
@@ -233,7 +234,7 @@
 
 	void insertSTparamscount(char *s, int count)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,s)==0 )
 			{
@@ -244,7 +245,7 @@
 
 	int getSTparamscount(char *s)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,s)==0 )
 			{
@@ -256,7 +257,7 @@
 
 	void insertSTF(char *s)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(strcmp(ST[i].name,s)==0 )
 			{
@@ -284,7 +285,7 @@
 
 			int pos = 0;
 
-			for (int i = value + 1 ; i!=value ; i = (i+1)%1007)
+			for (int i = value + 1 ; i!=value ; i = (i+1)%MAX_TABLE_SIZE)
 			{
 				if(CT[i].length == 0)
 				{
@@ -301,7 +302,7 @@
 
 	void deletedata (int nesting)
 	{
-		for(int i = 0 ; i < 1007 ; i++)
+		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
 		{
 			if(ST[i].nesting_val == nesting)
 			{
@@ -386,7 +387,7 @@
 
 	int check_duplicate(char* str)
 	{
-		for(int i=0; i<1007; i++)
+		for(int i=0; i<MAX_TABLE_SIZE; i++)
 		{
 			if(strcmp(ST[i].name, str) == 0 && strcmp(ST[i].class, "Function") == 0)
 			{
@@ -398,7 +399,7 @@
 
 	int check_declaration(char* str, char *check_type)
 	{
-		for(int i=0; i<1007; i++)
+		for(int i=0; i<MAX_TABLE_SIZE; i++)
 		{
 			if(strcmp(ST[i].name, str) == 0 && strcmp(ST[i].class, "Function") == 0 || strcmp(ST[i].name,"printf")==0 )
 			{
@@ -420,7 +421,7 @@
 
 	char gettype(char *s, int flag)
 	{
-			for(int i = 0 ; i < 1007 ; i++ )
+			for(int i = 0 ; i < MAX_TABLE_SIZE ; i++ )
 			{
 				if(strcmp(ST[i].name,s)==0)
 				{
@@ -439,7 +440,7 @@
     printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
 
     // Print each symbol in the table
-    for (int i = 0; i < 1007; i++) {
+    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
         if (ST[i].length == 0) {
             continue;
         }
@@ -459,7 +460,7 @@ void printCT()
     printf("+-----------------+-----------------+\n");
 
     // Print each constant in the table
-    for (int i = 0; i < 1007; i++) {
+    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
         if (CT[i].length == 0) {
             continue;
         }

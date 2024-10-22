@@ -8,12 +8,14 @@ int myfunc(int b)
     return x;
 }
 
+int gg2,;
+
 
 void main()
 {
     int n,i;
     char ch;//Character Datatype
-    int x;
+    int x,;
     int arr[10][2][3][4];
     int gg[20];
     char name[1][3];

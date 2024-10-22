@@ -95,16 +95,17 @@ D
 declaration
 			: variable_declaration 
 			| function_declaration
+			| error {yyerror("Error in declaration");}
 
 variable_declaration
-			: type_specifier variable_declaration_list ';' 
+			: type_specifier variable_declaration_list ';'
 
 variable_declaration_list
 			: variable_declaration_list ',' variable_declaration_identifier | variable_declaration_identifier;
 
 variable_declaration_identifier 
-			: identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi   
-			  | array_identifier {curr_dimension=0;if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi;
+			: identifier {if(duplicate(curid)){yyerror("Duplicate Identifier");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi   
+			  | array_identifier {curr_dimension=0;if(duplicate(curid)){yyerror("Duplicate Identifier");exit(0);}insertSTnest(curid,current_nesting); ins();  } vdi;
 			
 			
 
@@ -177,9 +178,11 @@ statement
 			: expression_statment | compound_statement 
 			| conditional_statements | iterative_statements 
 			| return_statement | break_statement 
-			| variable_declaration;
+			| variable_declaration
+			| error {yyerror("Error in a statement");}
+			;
 
-compound_statement 
+compound_statement
 			: {current_nesting++;} '{'  statment_list  '}' {deletedata(current_nesting);current_nesting--;}  ;
 
 statment_list 
@@ -272,7 +275,9 @@ expression
 			                                                       }
 			| mutable increment_operator 							{if($1 == 1) $$=1; else $$=-1;}
 			| mutable decrement_operator 							{if($1 == 1) $$=1; else $$=-1;}
-			| simple_expression {if($1 == 1) $$=1; else $$=-1;} ;
+			| simple_expression {if($1 == 1) $$=1; else $$=-1;} 
+			| error {yyerror("Error in expression");}
+			;
 
 
 simple_expression 
@@ -361,7 +366,9 @@ arguments
 			: arguments_list | ;
 
 arguments_list 
-			: expression { call_params_count++; } A ;
+			: expression { call_params_count++; } A 
+			| error {yyerror("Error in passing arguments");}
+			;
 
 A
 			: ',' expression { call_params_count++; } A 
@@ -402,10 +409,10 @@ int main(int argc , char **argv)
 
 void yyerror(char *s)
 {
-	printf( "%d %s %s\n", yylineno, s, yytext);
+	printf( "Line %d : %s %s\n", yylineno, s, yytext);
 	flag=1;
 	printf( "FAILED: Semantic Phase Parsing failed\n" );
-	exit(7);
+	/* exit(7); */
 }
 
 void ins()
