@@ -4,6 +4,7 @@
 	#include "y.tab.h"
 	#define MAX_TABLE_SIZE 1000
 
+	// Structure for symbol table
 	struct symboltable
 	{
 		char name[100];
@@ -17,6 +18,7 @@
 		int params_count;
 	}ST[MAX_TABLE_SIZE];
 
+	// Structure for constant table
 	struct constanttable
 	{
 		char name[100];
@@ -48,7 +50,7 @@
 	extern char gettype(char*,int);
 	extern char getfirst(char*);
 
-
+	// Hash function to generate hash value for a string
 	int hash(char *str)
 	{
 		int value = 0;
@@ -62,6 +64,7 @@
 		return value;
 	}
 
+	// Lookup function for symbol table
 	int lookupST(char *str)
 	{
 		int value = hash(str);
@@ -88,6 +91,7 @@
 		}
 	}
 
+	// Lookup function for constant table
 	int lookupCT(char *str)
 	{
 		int value = hash(str);
@@ -108,6 +112,7 @@
 		}
 	}
 
+	// Insert line number in symbol table
 	void insertSTline(char *str1, int line)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -119,7 +124,7 @@
 		}
 	}
 
-
+	// Insert symbol in symbol table
 	void insertST(char *str1, char *str2)
 	{
 		if(lookupST(str1))
@@ -164,6 +169,7 @@
 		}
 	}
 
+	// Insert type in symbol table
 	void insertSTtype(char *str1, char *str2)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -175,6 +181,7 @@
 		}
     }
 
+	// Insert value in symbol table
 	void insertSTvalue(char *str1, char *str2)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -186,6 +193,7 @@
 		}
 	}
 
+	// Insert dimension in symbol table
 	void insertSTDimension(char *str1, int dim)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -197,7 +205,7 @@
 		}
 	}
 
-
+	// Insert nesting value in symbol table
 	void insertSTnest(char *s, int nest)
 	{
 		if(lookupST(s) && ST[lookupST(s)].nesting_val != 9999)
@@ -232,6 +240,7 @@
 		}
 	}
 
+	// Insert parameter count in symbol table
 	void insertSTparamscount(char *s, int count)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -243,6 +252,7 @@
 		}
 	}
 
+	// Get parameter count from symbol table
 	int getSTparamscount(char *s)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -255,6 +265,7 @@
 		return -2;
 	}
 
+	// Insert function in symbol table
 	void insertSTF(char *s)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -268,6 +279,7 @@
 
 	}
 
+	// Insert constant in constant table
 	void insertCT(char *str1, char *str2)
 	{
 		if(lookupCT(str1))
@@ -300,6 +312,7 @@
 		}
 	}
 
+	// Delete data from symbol table based on nesting value
 	void deletedata (int nesting)
 	{
 		for(int i = 0 ; i < MAX_TABLE_SIZE ; i++)
@@ -309,10 +322,9 @@
 				ST[i].nesting_val = 99999;
 			}
 		}
-
-
 	}
 
+	// Check scope of a symbol
 	int checkscope(char *s)
 	{
 		int flag = 0;
@@ -341,6 +353,7 @@
 		}
 	}
 
+	// Check if identifier is a function
 	int check_id_is_func(char *s)
 	{
 		for(int i = 0 ; i < 1000 ; i++)
@@ -354,6 +367,7 @@
 		return 0;
 	}
 
+	// Check if symbol is an array
 	int checkarray(char *s)
 	{
 		for(int i = 0 ; i < 1000 ; i++)
@@ -369,6 +383,7 @@
 		return 1;
 	}
 
+	// Check for duplicate symbol in the same scope
 	int duplicate(char *s)
 	{
 		for(int i = 0 ; i < 1000 ; i++)
@@ -385,6 +400,7 @@
 		return 0;
 	}
 
+	// Check for duplicate function declaration
 	int check_duplicate(char* str)
 	{
 		for(int i=0; i<MAX_TABLE_SIZE; i++)
@@ -397,6 +413,7 @@
 		}
 	}
 
+	// Check if function is declared
 	int check_declaration(char* str, char *check_type)
 	{
 		for(int i=0; i<MAX_TABLE_SIZE; i++)
@@ -409,6 +426,7 @@
 		return 0;
 	}
 
+	// Check if parameters are valid
 	int check_params(char* type_specifier)
 	{
 		if(!strcmp(type_specifier, "void"))
@@ -419,6 +437,7 @@
 		return 0;
 	}
 
+	// Get type of a symbol
 	char gettype(char *s, int flag)
 	{
 			for(int i = 0 ; i < MAX_TABLE_SIZE ; i++ )
@@ -431,45 +450,47 @@
 		
 	}
 
+	// Print symbol table
 	void printST()
-{
-    // Boxed table header
-    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
-    printf("| %-15s | %-20s | %-10s | %-10s | %-8s | %-15s | %-10s |\n",
-           "Symbol Name", "Class", "Type", "Value", "Line No.", "Count of Params", "Dimension");
-    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+	{
+		// Boxed table header
+		printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+		printf("| %-15s | %-20s | %-10s | %-10s | %-8s | %-15s | %-10s |\n",
+			"Symbol Name", "Class", "Type", "Value", "Line No.", "Count of Params", "Dimension");
+		printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
 
-    // Print each symbol in the table
-    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
-        if (ST[i].length == 0) {
-            continue;
-        }
-        printf("| %-15s | %-20s | %-10s | %-10s | %-8d | %-15d | %-10d |\n",
-               ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].params_count, ST[i].dimension);
-    }
+		// Print each symbol in the table
+		for (int i = 0; i < MAX_TABLE_SIZE; i++) {
+			if (ST[i].length == 0) {
+				continue;
+			}
+			printf("| %-15s | %-20s | %-10s | %-10s | %-8d | %-15d | %-10d |\n",
+				ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].params_count, ST[i].dimension);
+		}
 
-    // Bottom border of the table
-    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
-}
+		// Bottom border of the table
+		printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+	}
 
-void printCT()
-{
-    // Boxed table header for constants
-    printf("+-----------------+-----------------+\n");
-    printf("| %-15s | %-15s |\n", "Constant Name", "Constant Type");
-    printf("+-----------------+-----------------+\n");
+	// Print constant table
+	void printCT()
+	{
+		// Boxed table header for constants
+		printf("+-----------------+-----------------+\n");
+		printf("| %-15s | %-15s |\n", "Constant Name", "Constant Type");
+		printf("+-----------------+-----------------+\n");
 
-    // Print each constant in the table
-    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
-        if (CT[i].length == 0) {
-            continue;
-        }
-        printf("| %-15s | %-15s |\n", CT[i].name, CT[i].type);
-    }
+		// Print each constant in the table
+		for (int i = 0; i < MAX_TABLE_SIZE; i++) {
+			if (CT[i].length == 0) {
+				continue;
+			}
+			printf("| %-15s | %-15s |\n", CT[i].name, CT[i].type);
+		}
 
-    // Bottom border of the table
-    printf("+-----------------+-----------------+\n");
-}
+		// Bottom border of the table
+		printf("+-----------------+-----------------+\n");
+	}
 
 	char curid[20];
 	char curtype[20];
