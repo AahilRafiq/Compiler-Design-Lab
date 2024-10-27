@@ -5,54 +5,54 @@
 	
 	void yyerror(char* s);
 	int yylex();
-	void ins();
-	void insV();
+	void insertSymbolTable();
+	void insertSymbolTableValue();
 	int flag=0;
 
-	extern char curid[20];
-	extern char curtype[20];
-	extern char curval[20];
-	extern int currnest;
-	void deletedata (int );
-	int checkscope(char*);
-	int check_id_is_func(char *);
-	void insertST(char*, char*);
-	void insertSTnest(char*, int);
-	void insertSTparamscount(char*, int);
-	int getSTparamscount(char*);
-	int check_duplicate(char*);
-	int check_declaration(char*, char *);
-	int check_params(char*);
-	int duplicate(char *s);
-	int checkarray(char*);
-	char currfunctype[100];
-	char currfunc[100];
-	char currfunccall[100];
-	void insertSTF(char*);
-	char gettype(char*,int);
-	char getfirst(char*);
+	extern char currentIdentifier[20];
+	extern char currentType[20];
+	extern char currentValue[20];
+	extern int currentNestingLevel;
+	void deleteData(int);
+	int checkScope(char*);
+	int checkIfIdentifierIsFunction(char *);
+	void insertSymbolTable(char*, char*);
+	void insertSymbolTableNesting(char*, int);
+	void insertSymbolTableParamsCount(char*, int);
+	int getSymbolTableParamsCount(char*);
+	int checkDuplicate(char*);
+	int checkDeclaration(char*, char *);
+	int checkParams(char*);
+	int checkDuplicate(char *s);
+	int checkArray(char*);
+	char currentFunctionType[100];
+	char currentFunction[100];
+	char currentFunctionCall[100];
+	void insertSymbolTableFunction(char*);
+	char getType(char*, int);
+	char getFirst(char*);
 	void push(char *s);
-	void codegen();
-	void codeassign();
-	char* itoa(int num, char* str, int base);
-	void reverse(char str[], int length); 
-	void swap(char*,char*);
-	void label1();
-	void label2();
-	void label3();
-	void label4();
-	void label5();
-	void label6();
-	void genunary();
-	void codegencon();
-	void funcgen();
-	void funcgenend();
-	void arggen();
-	void callgen();
+	void generateCode();
+	void generateCodeAssignment();
+	char* integerToString(int num, char* str, int base);
+	void reverseString(char str[], int length); 
+	void swapCharacters(char*, char*);
+	void generateLabel1();
+	void generateLabel2();
+	void generateLabel3();
+	void generateLabel4();
+	void generateLabel5();
+	void generateLabel6();
+	void generateUnaryCode();
+	void generateCodeConstant();
+	void generateFunctionCode();
+	void generateFunctionEndCode();
+	void generateArgumentCode();
+	void generateFunctionCallCode();
 
-	int params_count=0;
-	int call_params_count=0;
-	int top = 0,count=0,ltop=0,lno=0;
+	int paramsCount=0;
+	int callParamsCount=0;
+	int top = 0, count=0, labelTop=0, labelNumber=0;
 	char temp[3] = "t";
 %}
 
@@ -117,8 +117,8 @@ variable_declaration_list
 			: variable_declaration_list ',' variable_declaration_identifier | variable_declaration_identifier;
 
 variable_declaration_identifier 
-			: identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,currnest); ins();  } vdi   
-			  | array_identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,currnest); ins();  } vdi;
+			: identifier {if(checkDuplicate(currentIdentifier)){printf("Duplicate\n");exit(0);}insertSymbolTableNesting(currentIdentifier,currentNestingLevel); insertSymbolTable();  } vdi   
+			  | array_identifier {if(checkDuplicate(currentIdentifier)){printf("Duplicate\n");exit(0);}insertSymbolTableNesting(currentIdentifier,currentNestingLevel); insertSymbolTable();  } vdi;
 			
 			
 
@@ -161,16 +161,16 @@ function_declaration
 			: function_declaration_type function_declaration_param_statement;
 
 function_declaration_type
-			: type_specifier identifier '('  { strcpy(currfunctype, curtype); strcpy(currfunc, curid); check_duplicate(curid); insertSTF(curid); ins(); };
+			: type_specifier identifier '('  { strcpy(currentFunctionType, currentType); strcpy(currentFunction, currentIdentifier); checkDuplicate(currentIdentifier); insertSymbolTableFunction(currentIdentifier); insertSymbolTable(); };
 
 function_declaration_param_statement
-			: {params_count=0;}params ')' {funcgen();} statement {funcgenend();};
+			: {paramsCount=0;}params ')' {generateFunctionCode();} statement {generateFunctionEndCode();};
 
 params 
-			: parameters_list { insertSTparamscount(currfunc, params_count); }| { insertSTparamscount(currfunc, params_count); };
+			: parameters_list { insertSymbolTableParamsCount(currentFunction, paramsCount); }| { insertSymbolTableParamsCount(currentFunction, paramsCount); };
 
 parameters_list 
-			: type_specifier { check_params(curtype);} parameters_identifier_list ;
+			: type_specifier { checkParams(currentType);} parameters_identifier_list ;
 
 parameters_identifier_list 
 			: param_identifier parameters_identifier_list_breakup;
@@ -180,7 +180,7 @@ parameters_identifier_list_breakup
 			| ;
 
 param_identifier 
-			: identifier { ins();insertSTnest(curid,1); params_count++; } param_identifier_breakup;
+			: identifier { insertSymbolTable();insertSymbolTableNesting(currentIdentifier,1); paramsCount++; } param_identifier_breakup;
 
 param_identifier_breakup
 			: '[' ']'
@@ -193,7 +193,7 @@ statement
 			| variable_declaration;
 
 compound_statement 
-			: {currnest++;} '{'  statment_list  '}' {deletedata(currnest);currnest--;}  ;
+			: {currentNestingLevel++;} '{'  statment_list  '}' {deleteData(currentNestingLevel);currentNestingLevel--;}  ;
 
 statment_list 
 			: statement statment_list 
@@ -204,24 +204,24 @@ expression_statment
 			| ';' ;
 
 conditional_statements 
-			: IF '(' simple_expression ')' {label1();if($3!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {label2();}  conditional_statements_breakup;
+			: IF '(' simple_expression ')' {generateLabel1();if($3!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {generateLabel2();}  conditional_statements_breakup;
 
 conditional_statements_breakup
-			: ELSE statement {label3();}
-			| {label3();};
+			: ELSE statement {generateLabel3();}
+			| {generateLabel3();};
 
 iterative_statements 
-			: WHILE '(' {label4();} simple_expression ')' {label1();if($4!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {label5();} 
-			| FOR '(' expression ';' {label4();} simple_expression ';' {label1();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} expression ')'statement {label5();} 
-			| {label4();}DO statement WHILE '(' simple_expression ')'{label1();label5();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} ';';
+			: WHILE '(' {generateLabel4();} simple_expression ')' {generateLabel1();if($4!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {generateLabel5();} 
+			| FOR '(' expression ';' {generateLabel4();} simple_expression ';' {generateLabel1();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} expression ')'statement {generateLabel5();} 
+			| {generateLabel4();}DO statement WHILE '(' simple_expression ')'{generateLabel1();generateLabel5();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} ';';
 return_statement 
-			: RETURN ';' {if(strcmp(currfunctype,"void")) {printf("Returning void of a non-void function\n"); exit(0);}}
-			| RETURN expression ';' { 	if(!strcmp(currfunctype, "void"))
+			: RETURN ';' {if(strcmp(currentFunctionType,"void")) {printf("Returning void of a non-void function\n"); exit(0);}}
+			| RETURN expression ';' { 	if(!strcmp(currentFunctionType, "void"))
 										{ 
 											yyerror("Function is void");
 										}
 
-										if((currfunctype[0]=='i' || currfunctype[0]=='c') && $2!=1)
+										if((currentFunctionType[0]=='i' || currentFunctionType[0]=='c') && $2!=1)
 										{
 											printf("Expression doesn't match return type of function\n"); exit(0);
 										}
@@ -232,7 +232,7 @@ break_statement
 			: BREAK ';' ;
 
 string_initilization
-			: assignment_operator string_constant {insV();} ;
+			: assignment_operator string_constant {insertSymbolTableValue();} ;
 
 array_initialization
 			: assignment_operator '{' array_int_declarations '}';
@@ -252,28 +252,28 @@ expression
 			                                                          } 
 			                                                          else 
 			                                                          {$$=-1; printf("Type mismatch\n"); exit(0);} 
-			                                                          codeassign();
+			                                                          generateCodeAssignment();
 			                                                       }
 			| mutable addition_assignment_operator {push("+=");}expression {  
 																	  if($1==1 && $4==1) 
 			                                                          $$=1; 
 			                                                          else 
 			                                                          {$$=-1; printf("Type mismatch\n"); exit(0);} 
-			                                                          codeassign();
+			                                                          generateCodeAssignment();
 			                                                       }
 			| mutable subtraction_assignment_operator {push("-=");} expression  {	  
 																	  if($1==1 && $4==1) 
 			                                                          $$=1; 
 			                                                          else 
 			                                                          {$$=-1; printf("Type mismatch\n"); exit(0);} 
-			                                                          codeassign();
+			                                                          generateCodeAssignment();
 			                                                       }
 			| mutable multiplication_assignment_operator {push("*=");} expression {
 																	  if($1==1 && $4==1) 
 			                                                          $$=1; 
 			                                                          else 
 			                                                          {$$=-1; printf("Type mismatch\n"); exit(0);}
-			                                                          codeassign(); 
+			                                                          generateCodeAssignment(); 
 			                                                       }
 			| mutable division_assignment_operator {push("/=");}expression 		{ 
 																	  if($1==1 && $4==1) 
@@ -286,35 +286,35 @@ expression
 			                                                          $$=1; 
 			                                                          else 
 			                                                          {$$=-1; printf("Type mismatch\n"); exit(0);} 
-			                                                          codeassign();
+			                                                          generateCodeAssignment();
 																	}
-			| mutable increment_operator 							{ push("++");if($1 == 1) $$=1; else $$=-1; genunary();}
+			| mutable increment_operator 							{ push("++");if($1 == 1) $$=1; else $$=-1; generateUnaryCode();}
 			| mutable decrement_operator  							{push("--");if($1 == 1) $$=1; else $$=-1;}
 			| simple_expression {if($1 == 1) $$=1; else $$=-1;} ;
 
 
 simple_expression 
-			: simple_expression OR_operator and_expression {push("||");} {if($1 == 1 && $3==1) $$=1; else $$=-1; codegen();}
+			: simple_expression OR_operator and_expression {push("||");} {if($1 == 1 && $3==1) $$=1; else $$=-1; generateCode();}
 			| and_expression {if($1 == 1) $$=1; else $$=-1;};
 
 and_expression 
-			: and_expression AND_operator {push("&&");} unary_relation_expression  {if($1 == 1 && $3==1) $$=1; else $$=-1; codegen();}
+			: and_expression AND_operator {push("&&");} unary_relation_expression  {if($1 == 1 && $3==1) $$=1; else $$=-1; generateCode();}
 			  |unary_relation_expression {if($1 == 1) $$=1; else $$=-1;} ;
 
 
 unary_relation_expression 
-			: exclamation_operator {push("!");} unary_relation_expression {if($2==1) $$=1; else $$=-1; codegen();} 
+			: exclamation_operator {push("!");} unary_relation_expression {if($2==1) $$=1; else $$=-1; generateCode();} 
 			| regular_expression {if($1 == 1) $$=1; else $$=-1;} ;
 
 regular_expression 
-			: regular_expression relational_operators sum_expression {if($1 == 1 && $3==1) $$=1; else $$=-1; codegen();}
+			: regular_expression relational_operators sum_expression {if($1 == 1 && $3==1) $$=1; else $$=-1; generateCode();}
 			  | sum_expression {if($1 == 1) $$=1; else $$=-1;} ;
 			
 relational_operators 
 			: greaterthan_assignment_operator {push(">=");} | lessthan_assignment_operator {push("<=");} | greaterthan_operator {push(">");}| lessthan_operator {push("<");}| equality_operator {push("==");}| inequality_operator {push("!=");} ;
 
 sum_expression 
-			: sum_expression sum_operators term  {if($1 == 1 && $3==1) $$=1; else $$=-1; codegen();}
+			: sum_expression sum_operators term  {if($1 == 1 && $3==1) $$=1; else $$=-1; generateCode();}
 			| term {if($1 == 1) $$=1; else $$=-1;};
 
 sum_operators 
@@ -322,7 +322,7 @@ sum_operators
 			| subtract_operator {push("-");} ;
 
 term
-			: term MULOP factor {if($1 == 1 && $3==1) $$=1; else $$=-1; codegen();}
+			: term MULOP factor {if($1 == 1 && $3==1) $$=1; else $$=-1; generateCode();}
 			| factor {if($1 == 1) $$=1; else $$=-1;} ;
 
 MULOP 
@@ -334,20 +334,20 @@ factor
 
 mutable 
 			: identifier {
-						  push(curid);
-						  if(check_id_is_func(curid))
+						  push(currentIdentifier);
+						  if(checkIfIdentifierIsFunction(currentIdentifier))
 						  {printf("Function name used as Identifier\n"); exit(8);}
-			              if(!checkscope(curid))
-			              {printf("%s\n",curid);printf("Undeclared\n");exit(0);} 
-			              if(!checkarray(curid))
-			              {printf("%s\n",curid);printf("Array ID has no subscript\n");exit(0);}
-			              if(gettype(curid,0)=='i' || gettype(curid,1)== 'c')
+			              if(!checkScope(currentIdentifier))
+			              {printf("%s\n",currentIdentifier);printf("Undeclared\n");exit(0);} 
+			              if(!checkArray(currentIdentifier))
+			              {printf("%s\n",currentIdentifier);printf("Array ID has no subscript\n");exit(0);}
+			              if(getType(currentIdentifier,0)=='i' || getType(currentIdentifier,1)== 'c')
 			              $$ = 1;
 			              else
 			              $$ = -1;
 			              }
-			| array_identifier {if(!checkscope(curid)){printf("%s\n",curid);printf("Undeclared\n");exit(0);}} '[' expression ']' 
-			                   {if(gettype(curid,0)=='i' || gettype(curid,1)== 'c')
+			| array_identifier {if(!checkScope(currentIdentifier)){printf("%s\n",currentIdentifier);printf("Undeclared\n");exit(0);}} '[' expression ']' 
+			                   {if(getType(currentIdentifier,0)=='i' || getType(currentIdentifier,1)== 'c')
 			              		$$ = 1;
 			              		else
 			              		$$ = -1;
@@ -361,55 +361,55 @@ immutable
 call
 			: identifier '('{
 
-			             if(!check_declaration(curid, "Function"))
+			             if(!checkDeclaration(currentIdentifier, "Function"))
 			             { printf("Function not declared"); exit(0);} 
-			             insertSTF(curid); 
-						 strcpy(currfunccall,curid);
-						 if(gettype(curid,0)=='i' || gettype(curid,1)== 'c')
+			             insertSymbolTableFunction(currentIdentifier); 
+						 strcpy(currentFunctionCall,currentIdentifier);
+						 if(getType(currentIdentifier,0)=='i' || getType(currentIdentifier,1)== 'c')
 						 {
 			             $$ = 1;
 			             }
 			             else
 			             $$ = -1;
-                         call_params_count=0;
+                         callParamsCount=0;
 			             } 
 			             arguments ')' 
-						 { if(strcmp(currfunccall,"printf"))
+						 { if(strcmp(currentFunctionCall,"printf"))
 							{ 
-								if(getSTparamscount(currfunccall)!=call_params_count)
+								if(getSymbolTableParamsCount(currentFunctionCall)!=callParamsCount)
 								{	
 									yyerror("Number of arguments in function call doesn't match number of parameters");
 									exit(8);
 								}
 							}
-							callgen();
+							generateFunctionCallCode();
 						 };
 
 arguments 
 			: arguments_list | ;
 
 arguments_list 
-			: arguments_list ',' exp { call_params_count++; }  
-			| exp { call_params_count++; };
+			: arguments_list ',' exp { callParamsCount++; }  
+			| exp { callParamsCount++; };
 
-exp : identifier {arggen(1);} | integer_constant {arggen(2);} | string_constant {arggen(3);} | float_constant {arggen(4);} | character_constant {arggen(5);} ;
+exp : identifier {generateArgumentCode(1);} | integer_constant {generateArgumentCode(2);} | string_constant {generateArgumentCode(3);} | float_constant {generateArgumentCode(4);} | character_constant {generateArgumentCode(5);} ;
 
 constant 
-			: integer_constant 	{  insV(); codegencon(); $$=1; } 
-			| string_constant	{  insV(); codegencon();$$=-1;} 
-			| float_constant	{  insV(); codegencon();} 
-			| character_constant{  insV(); codegencon();$$=1; };
+			: integer_constant 	{  insertSymbolTableValue(); generateCodeConstant(); $$=1; } 
+			| string_constant	{  insertSymbolTableValue(); generateCodeConstant();$$=-1;} 
+			| float_constant	{  insertSymbolTableValue(); generateCodeConstant();} 
+			| character_constant{  insertSymbolTableValue(); generateCodeConstant();$$=1; };
 
 %%
 
 extern FILE *yyin;
 extern int yylineno;
 extern char *yytext;
-void insertSTtype(char *,char *);
-void insertSTvalue(char *, char *);
-void incertCT(char *, char *);
-void printST();
-void printCT();
+void insertSymbolTableType(char *,char *);
+void insertSymbolTableValue(char *, char *);
+void insertConstantTable(char *, char *);
+void printSymbolTable();
+void printConstantTable();
 
 struct stack
 {
@@ -423,26 +423,26 @@ void push(char *x)
 	strcpy(s[++top].value,x);
 }
 
-void swap(char *x, char *y)
+void swapCharacters(char *x, char *y)
 {
 	char temp = *x;
 	*x = *y;
 	*y = temp;
 }
 
-void reverse(char str[], int length) 
+void reverseString(char str[], int length) 
 { 
     int start = 0; 
     int end = length -1; 
     while (start < end) 
     { 
-        swap((str+start), (str+end)); 
+        swapCharacters((str+start), (str+end)); 
         start++; 
         end--; 
     } 
 } 
   
-char* itoa(int num, char* str, int base) 
+char* integerToString(int num, char* str, int base) 
 { 
     int i = 0; 
     int isNegative = 0; 
@@ -475,16 +475,16 @@ char* itoa(int num, char* str, int base)
     str[i] = '\0'; 
   
    
-    reverse(str, i); 
+    reverseString(str, i); 
   
     return str; 
 } 
 
-void codegen()
+void generateCode()
 {
 	strcpy(temp,"t");
 	char buffer[100];
-	itoa(count,buffer,10);
+	integerToString(count,buffer,10);
 	strcat(temp,buffer);
 	printf("%s = %s %s %s\n",temp,s[top-2].value,s[top-1].value,s[top].value);
 	top = top - 2;
@@ -492,19 +492,19 @@ void codegen()
 	count++; 
 }
 
-void codegencon()
+void generateCodeConstant()
 {
 	strcpy(temp,"t");
 	char buffer[100];
-	itoa(count,buffer,10);
+	integerToString(count,buffer,10);
 	strcat(temp,buffer);
-	printf("%s = %s\n",temp,curval);
+	printf("%s = %s\n",temp,currentValue);
 	push(temp);
 	count++;
 	
 }
 
-int isunary(char *s)
+int isUnary(char *s)
 {
 	if(strcmp(s, "--")==0 || strcmp(s, "++")==0)
 	{
@@ -513,13 +513,13 @@ int isunary(char *s)
 	return 0;
 }
 
-void genunary()
+void generateUnaryCode()
 {
 	char temp1[100], temp2[100], temp3[100];
 	strcpy(temp1, s[top].value);
 	strcpy(temp2, s[top-1].value);
 
-	if(isunary(temp1))
+	if(isUnary(temp1))
 	{
 		strcpy(temp3, temp1);
 		strcpy(temp1, temp2);
@@ -527,7 +527,7 @@ void genunary()
 	}
 	strcpy(temp, "t");
 	char buffer[100];
-	itoa(count, buffer, 10);
+	integerToString(count, buffer, 10);
 	strcat(temp, buffer);
 	count++;
 
@@ -546,102 +546,102 @@ void genunary()
 	top = top -2;
 }
 
-void codeassign()
+void generateCodeAssignment()
 {
 	printf("%s = %s\n",s[top-2].value,s[top].value);
 	top = top - 2;
 }
 
-void label1()
+void generateLabel1()
 {
 	strcpy(temp,"L");
 	char buffer[100];
-	itoa(lno,buffer,10);
+	integerToString(labelNumber,buffer,10);
 	strcat(temp,buffer);
 	printf("IF not %s GoTo %s\n",s[top].value,temp);
-	label[++ltop].labelvalue = lno++;
+	label[++labelTop].labelvalue = labelNumber++;
 }
 
-void label2()
+void generateLabel2()
 {
 	strcpy(temp,"L");
 	char buffer[100];
-	itoa(lno,buffer,10);
+	integerToString(labelNumber,buffer,10);
 	strcat(temp,buffer);
 	printf("GoTo %s\n",temp);
 	strcpy(temp,"L");
-	itoa(label[ltop].labelvalue,buffer,10);
+	integerToString(label[labelTop].labelvalue,buffer,10);
 	strcat(temp,buffer);
 	printf("%s:\n",temp);
-	ltop--;
-	label[++ltop].labelvalue=lno++;
+	labelTop--;
+	label[++labelTop].labelvalue=labelNumber++;
 }
 
-void label3()
+void generateLabel3()
 {
 	strcpy(temp,"L");
 	char buffer[100];
-	itoa(label[ltop].labelvalue,buffer,10);
+	integerToString(label[labelTop].labelvalue,buffer,10);
 	strcat(temp,buffer);
 	printf("%s:\n",temp);
-	ltop--;
+	labelTop--;
 	
 }
 
-void label4()
+void generateLabel4()
 {
 	strcpy(temp,"L");
 	char buffer[100];
-	itoa(lno,buffer,10);
+	integerToString(labelNumber,buffer,10);
 	strcat(temp,buffer);
 	printf("%s:\n",temp);
-	label[++ltop].labelvalue = lno++;
+	label[++labelTop].labelvalue = labelNumber++;
 }
 
 
-void label5()
+void generateLabel5()
 {
 	strcpy(temp,"L");
 	char buffer[100];
-	itoa(label[ltop-1].labelvalue,buffer,10);
+	integerToString(label[labelTop-1].labelvalue,buffer,10);
 	strcat(temp,buffer);
 	printf("GoTo %s:\n",temp);
 	strcpy(temp,"L");
-	itoa(label[ltop].labelvalue,buffer,10);
+	integerToString(label[labelTop].labelvalue,buffer,10);
 	strcat(temp,buffer);
 	printf("%s:\n",temp);
-	ltop = ltop - 2;
+	labelTop = labelTop - 2;
     
    
 }
 
-void funcgen()
+void generateFunctionCode()
 {
-	printf("func begin %s\n",currfunc);
+	printf("func begin %s\n",currentFunction);
 }
 
-void funcgenend()
+void generateFunctionEndCode()
 {
 	printf("func end\n\n");
 }
 
-void arggen(int i)
+void generateArgumentCode(int i)
 {
     if(i==1)
     {
-	printf("refparam %s\n", curid);
+	printf("refparam %s\n", currentIdentifier);
 	}
 	else
 	{
-	printf("refparam %s\n", curval);
+	printf("refparam %s\n", currentValue);
 	}
 }
 
-void callgen()
+void generateFunctionCallCode()
 {
 	printf("refparam result\n");
 	push("result");
-	printf("call %s, %d\n",currfunccall,call_params_count);
+	printf("call %s, %d\n",currentFunctionCall,callParamsCount);
 }
 
 
@@ -656,11 +656,11 @@ int main(int argc , char **argv)
 		printf( "PASSED: ICG Phase\n" );
 		printf("%30s"  "PRINTING SYMBOL TABLE"  "\n", " ");
 		printf("%30s %s\n", " ", "______________");
-		printST();
+		printSymbolTable();
 
 		printf("\n\n%30s"  "PRINTING CONSTANT TABLE"  "\n", " ");
 		printf("%30s %s\n", " ", "______________");
-		printCT();
+		printConstantTable();
 	}
 }
 
@@ -672,14 +672,14 @@ void yyerror(char *s)
 	exit(7);
 }
 
-void ins()
+void insertSymbolTable()
 {
-	insertSTtype(curid,curtype);
+	insertSymbolTableType(currentIdentifier,currentType);
 }
 
-void insV()
+void insertSymbolTableValue()
 {
-	insertSTvalue(curid,curval);
+	insertSymbolTableValue(currentIdentifier,currentValue);
 }
 
 int yywrap()

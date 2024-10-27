@@ -4,28 +4,31 @@
 	#include <stdlib.h>
 	#include "y.tab.h"
 
+	// Structure to represent a symbol table entry
 	struct symboltable
 	{
 		char name[100];
 		char class[100];
 		char type[100];
 		char value[100];
-		int nestval;
-		int lineno;
+		int nesting_level;
+		int line_number;
 		int length;
 		int params_count;
-	}ST[1007];
+	}symbol_table[1007];
 
+	// Structure to represent a constant table entry
 	struct constanttable
 	{
 		char name[100];
 		char type[100];
 		int length;
-	}CT[1007];
+	}constant_table[1007];
 
-	int currnest = 0;
+	int current_nesting_level = 0;
 	extern int yylval;
 
+	// Hash function to generate a hash value for a given string
 	int hash(char *str)
 	{
 		int value = 0;
@@ -39,14 +42,15 @@
 		return value;
 	}
 
-	int lookupST(char *str)
+	// Function to look up a symbol in the symbol table
+	int lookupSymbolTable(char *str)
 	{
 		int value = hash(str);
-		if(ST[value].length == 0)
+		if(symbol_table[value].length == 0)
 		{
 			return 0;
 		}
-		else if(strcmp(ST[value].name,str)==0)
+		else if(strcmp(symbol_table[value].name,str)==0)
 		{
 			
 			return value;
@@ -55,7 +59,7 @@
 		{
 			for(int i = value + 1 ; i!=value ; i = (i+1)%1007)
 			{
-				if(strcmp(ST[i].name,str)==0)
+				if(strcmp(symbol_table[i].name,str)==0)
 				{
 					
 					return i;
@@ -65,18 +69,19 @@
 		}
 	}
 
-	int lookupCT(char *str)
+	// Function to look up a constant in the constant table
+	int lookupConstantTable(char *str)
 	{
 		int value = hash(str);
-		if(CT[value].length == 0)
+		if(constant_table[value].length == 0)
 			return 0;
-		else if(strcmp(CT[value].name,str)==0)
+		else if(strcmp(constant_table[value].name,str)==0)
 			return 1;
 		else
 		{
 			for(int i = value + 1 ; i!=value ; i = (i+1)%1007)
 			{
-				if(strcmp(CT[i].name,str)==0)
+				if(strcmp(constant_table[i].name,str)==0)
 				{
 					return 1;
 				}
@@ -85,23 +90,24 @@
 		}
 	}
 
-	void insertSTline(char *str1, int line)
+	// Function to insert a line number for a symbol in the symbol table
+	void insertSymbolTableLine(char *str1, int line)
 	{
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(strcmp(ST[i].name,str1)==0)
+			if(strcmp(symbol_table[i].name,str1)==0)
 			{
-				ST[i].lineno = line;
+				symbol_table[i].line_number = line;
 			}
 		}
 	}
 
-
-	void insertST(char *str1, char *str2)
+	// Function to insert a symbol into the symbol table
+	void insertSymbolTable(char *str1, char *str2)
 	{
-		if(lookupST(str1))
+		if(lookupSymbolTable(str1))
 		{
-			if(strcmp(ST[lookupST(str1)].class,"Identifier")==0 && strcmp(str2,"Array Identifier")==0)
+			if(strcmp(symbol_table[lookupSymbolTable(str1)].class,"Identifier")==0 && strcmp(str2,"Array Identifier")==0)
 			{
 				printf("Error use of array\n");
 				exit(0);
@@ -111,14 +117,14 @@
 		else
 		{
 			int value = hash(str1);
-			if(ST[value].length == 0)
+			if(symbol_table[value].length == 0)
 			{
-				strcpy(ST[value].name,str1);
-				strcpy(ST[value].class,str2);
-				ST[value].length = strlen(str1);
-				ST[value].nestval = 9999;
-				ST[value].params_count = -1;
-				insertSTline(str1,yylineno);
+				strcpy(symbol_table[value].name,str1);
+				strcpy(symbol_table[value].class,str2);
+				symbol_table[value].length = strlen(str1);
+				symbol_table[value].nesting_level = 9999;
+				symbol_table[value].params_count = -1;
+				insertSymbolTableLine(str1,yylineno);
 				return;
 			}
 
@@ -126,127 +132,133 @@
 
 			for (int i = value + 1 ; i!=value ; i = (i+1)%1007)
 			{
-				if(ST[i].length == 0)
+				if(symbol_table[i].length == 0)
 				{
 					pos = i;
 					break;
 				}
 			}
 
-			strcpy(ST[pos].name,str1);
-			strcpy(ST[pos].class,str2);
-			ST[pos].length = strlen(str1);
-			ST[pos].nestval = 9999;
-			ST[pos].params_count = -1;
+			strcpy(symbol_table[pos].name,str1);
+			strcpy(symbol_table[pos].class,str2);
+			symbol_table[pos].length = strlen(str1);
+			symbol_table[pos].nesting_level = 9999;
+			symbol_table[pos].params_count = -1;
 		}
 	}
 
-	void insertSTtype(char *str1, char *str2)
+	// Function to insert a type for a symbol in the symbol table
+	void insertSymbolTableType(char *str1, char *str2)
 	{
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(strcmp(ST[i].name,str1)==0)
+			if(strcmp(symbol_table[i].name,str1)==0)
 			{
-				strcpy(ST[i].type,str2);
+				strcpy(symbol_table[i].type,str2);
 			}
 		}
     }
 
-	void insertSTvalue(char *str1, char *str2)
+	// Function to insert a value for a symbol in the symbol table
+	void insertSymbolTableValue(char *str1, char *str2)
 	{
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(strcmp(ST[i].name,str1)==0 && ST[i].nestval == currnest)
+			if(strcmp(symbol_table[i].name,str1)==0 && symbol_table[i].nesting_level == current_nesting_level)
 			{
-				strcpy(ST[i].value,str2);
+				strcpy(symbol_table[i].value,str2);
 			}
 		}
 	}
 
-
-	void insertSTnest(char *s, int nest)
+	// Function to insert a nesting level for a symbol in the symbol table
+	void insertSymbolTableNesting(char *s, int nest)
 	{
-		if(lookupST(s) && ST[lookupST(s)].nestval != 9999)
+		if(lookupSymbolTable(s) && symbol_table[lookupSymbolTable(s)].nesting_level != 9999)
 		{
              int pos = 0;
              int value = hash(s);
 			for (int i = value + 1 ; i!=value ; i = (i+1)%1007)
 			{
-				if(ST[i].length == 0)
+				if(symbol_table[i].length == 0)
 				{
 					pos = i;
 					break;
 				}
 			}
 
-			strcpy(ST[pos].name,s);
-			strcpy(ST[pos].class,"Identifier");
-			ST[pos].length = strlen(s);
-			ST[pos].nestval = nest;
-			ST[pos].params_count = -1;
-			ST[pos].lineno = yylineno;
+			strcpy(symbol_table[pos].name,s);
+			strcpy(symbol_table[pos].class,"Identifier");
+			symbol_table[pos].length = strlen(s);
+			symbol_table[pos].nesting_level = nest;
+			symbol_table[pos].params_count = -1;
+			symbol_table[pos].line_number = yylineno;
 		}
 		else
 		{
 			for(int i = 0 ; i < 1007 ; i++)
 			{
-				if(strcmp(ST[i].name,s)==0 )
+				if(strcmp(symbol_table[i].name,s)==0 )
 				{
-					ST[i].nestval = nest;
+					symbol_table[i].nesting_level = nest;
 				}
 			}
 		}
 	}
 
-	void insertSTparamscount(char *s, int count1)
+	// Function to insert a parameter count for a symbol in the symbol table
+	void insertSymbolTableParamsCount(char *s, int count1)
 	{
 
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0 )
+			if(strcmp(symbol_table[i].name,s)==0 )
 			{
-				ST[i].params_count = count1;
+				symbol_table[i].params_count = count1;
 			}
 		}
 	}
 
-	int getSTparamscount(char *s)
+	// Function to get the parameter count for a symbol in the symbol table
+	int getSymbolTableParamsCount(char *s)
 	{
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0 )
+			if(strcmp(symbol_table[i].name,s)==0 )
 			{
-				return ST[i].params_count;
+				return symbol_table[i].params_count;
 			}
 		}
 		return -1;
 	}
 
-	void insertSTF(char *s)
+	// Function to insert a function symbol in the symbol table
+	void insertSymbolTableFunction(char *s)
 	{
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0 )
+			if(strcmp(symbol_table[i].name,s)==0 )
 			{
-				strcpy(ST[i].class,"Function");
+				strcpy(symbol_table[i].class,"Function");
 				return;
 			}
 		}
 
 	}
 
-	void insertCT(char *str1, char *str2)
+	// Function to insert a constant into the constant table
+	void insertConstantTable(char *str1, char *str2)
 	{
-		if(lookupCT(str1))
+		if(lookupConstantTable(str1))
 			return;
 		else
 		{
 			int value = hash(str1);
-			if(CT[value].length == 0)
+			if(constant_table[value].length == 0)
 			{
-				strcpy(CT[value].name,str1);
-				strcpy(CT[value].type,str2);
-				CT[value].length = strlen(str1);
+				strcpy(constant_table[value].name,str1);
+				strcpy(constant_table[value].type,str2);
+				constant_table[value].length = strlen(str1);
 				return;
 			}
 
@@ -254,40 +266,42 @@
 
 			for (int i = value + 1 ; i!=value ; i = (i+1)%1007)
 			{
-				if(CT[i].length == 0)
+				if(constant_table[i].length == 0)
 				{
 					pos = i;
 					break;
 				}
 			}
 
-			strcpy(CT[pos].name,str1);
-			strcpy(CT[pos].type,str2);
-			CT[pos].length = strlen(str1);
+			strcpy(constant_table[pos].name,str1);
+			strcpy(constant_table[pos].type,str2);
+			constant_table[pos].length = strlen(str1);
 		}
 	}
 
-	void deletedata (int nesting)
+	// Function to delete data from the symbol table based on nesting level
+	void deleteData (int nesting)
 	{
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(ST[i].nestval == nesting)
+			if(symbol_table[i].nesting_level == nesting)
 			{
-				ST[i].nestval = 99999;
+				symbol_table[i].nesting_level = 99999;
 			}
 		}
 
 
 	}
 
-	int checkscope(char *s)
+	// Function to check the scope of a symbol
+	int checkScope(char *s)
 	{
 		int flag = 0;
 		for(int i = 0 ; i < 1000 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0)
+			if(strcmp(symbol_table[i].name,s)==0)
 			{
-				if(ST[i].nestval > currnest)
+				if(symbol_table[i].nesting_level > current_nesting_level)
 				{
 					flag = 1;
 				}
@@ -308,26 +322,28 @@
 		}
 	}
 
-	int check_id_is_func(char *s)
+	// Function to check if an identifier is a function
+	int checkIfIdentifierIsFunction(char *s)
 	{
 		for(int i = 0 ; i < 1000 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0)
+			if(strcmp(symbol_table[i].name,s)==0)
 			{
-				if(strcmp(ST[i].class,"Function")==0)
+				if(strcmp(symbol_table[i].class,"Function")==0)
 					return 1;
 			}
 		}
 		return 0;
 	}
 
-	int checkarray(char *s)
+	// Function to check if a symbol is an array
+	int checkArray(char *s)
 	{
 		for(int i = 0 ; i < 1000 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0)
+			if(strcmp(symbol_table[i].name,s)==0)
 			{
-				if(strcmp(ST[i].class,"Array Identifier")==0)
+				if(strcmp(symbol_table[i].class,"Array Identifier")==0)
 				{
 					return 0;
 				}
@@ -336,13 +352,14 @@
 		return 1;
 	}
 
-	int duplicate(char *s)
+	// Function to check for duplicate symbols in the current scope
+	int checkDuplicate(char *s)
 	{
 		for(int i = 0 ; i < 1000 ; i++)
 		{
-			if(strcmp(ST[i].name,s)==0)
+			if(strcmp(symbol_table[i].name,s)==0)
 			{				
-				if(ST[i].nestval == currnest)
+				if(symbol_table[i].nesting_level == current_nesting_level)
 				{
 			        return 1;
 				}
@@ -352,11 +369,12 @@
 		return 0;
 	}
 
-	int check_duplicate(char* str)
+	// Function to check for duplicate function declarations
+	int checkFunctionDuplicate(char* str)
 	{
 		for(int i=0; i<1007; i++)
 		{
-			if(strcmp(ST[i].name, str) == 0 && strcmp(ST[i].class, "Function") == 0)
+			if(strcmp(symbol_table[i].name, str) == 0 && strcmp(symbol_table[i].class, "Function") == 0)
 			{
 				printf("Function redeclaration not allowed\n");
 				exit(0);
@@ -364,11 +382,12 @@
 		}
 	}
 
-	int check_declaration(char* str, char *check_type)
+	// Function to check if a function is declared
+	int checkFunctionDeclaration(char* str, char *check_type)
 	{
 		for(int i=0; i<1007; i++)
 		{
-			if(strcmp(ST[i].name, str) == 0 && strcmp(ST[i].class, "Function") == 0 || strcmp(ST[i].name,"printf")==0 )
+			if(strcmp(symbol_table[i].name, str) == 0 && strcmp(symbol_table[i].class, "Function") == 0 || strcmp(symbol_table[i].name,"printf")==0 )
 			{
 				return 1;
 			}
@@ -376,7 +395,8 @@
 		return 0;
 	}
 
-	int check_params(char* type_specifier)
+	// Function to check if function parameters are valid
+	int checkFunctionParams(char* type_specifier)
 	{
 		if(!strcmp(type_specifier, "void"))
 		{
@@ -386,19 +406,21 @@
 		return 0;
 	}
 
-	char gettype(char *s, int flag)
+	// Function to get the type of a symbol
+	char getType(char *s, int flag)
 	{
 			for(int i = 0 ; i < 1007 ; i++ )
 			{
-				if(strcmp(ST[i].name,s)==0)
+				if(strcmp(symbol_table[i].name,s)==0)
 				{
-					return ST[i].type[0];
+					return symbol_table[i].type[0];
 				}
 			}
 		
 	}
 
-	void printST()
+	// Function to print the symbol table
+	void printSymbolTable()
 	{
 		printf("%10s | %15s | %10s | %10s | %10s | %15s | %10s |\n","Symbol Name", "Class", "Type","Value", "Line No.", "Nesting Count", "Params Count");
 		for(int i=0;i<120;i++) {
@@ -407,16 +429,16 @@
 		printf("\n");
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(ST[i].length == 0)
+			if(symbol_table[i].length == 0)
 			{
 				continue;
 			}
-			printf("%10s | %15s | %10s | %10s | %10d | %15d | %10d |\n",ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].nestval, ST[i].params_count);
+			printf("%10s | %15s | %10s | %10s | %10d | %15d | %10d |\n",symbol_table[i].name, symbol_table[i].class, symbol_table[i].type, symbol_table[i].value, symbol_table[i].line_number, symbol_table[i].nesting_level, symbol_table[i].params_count);
 		}
     }
 
-
-	void printCT()
+	// Function to print the constant table
+	void printConstantTable()
 	{
 		printf("%10s | %15s\n","constant name", "Type");
 		for(int i=0;i<110;i++) {
@@ -425,15 +447,15 @@
 		printf("\n");
 		for(int i = 0 ; i < 1007 ; i++)
 		{
-			if(CT[i].length == 0)
+			if(constant_table[i].length == 0)
 				continue;
 
-			printf("%10s | %15s\n",CT[i].name, CT[i].type);
+			printf("%10s | %15s\n",constant_table[i].name, constant_table[i].type);
 		}
 	}
-	char curid[20];
-	char curtype[20];
-	char curval[20];
+	char currentIdentifier[20];
+	char currentType[20];
+	char currentValue[20];
 
 %}
 
@@ -458,24 +480,24 @@ IN "include"
 ":"				{ return(':'); }
 "."				{ return('.'); }
 
-"char"			{ strcpy(curtype,yytext); insertST(yytext, "Keyword");return CHAR;}
-"double"		{ strcpy(curtype,yytext); insertST(yytext, "Keyword"); return DOUBLE;}
-"else"			{ insertST(yytext, "Keyword"); return ELSE;}
-"float"			{ strcpy(curtype,yytext); insertST(yytext, "Keyword"); return FLOAT;}
-"while"			{ insertST(yytext, "Keyword"); return WHILE;}
-"do"			{ insertST(yytext, "Keyword"); return DO;}
-"for"			{ insertST(yytext, "Keyword"); return FOR;}
-"if"			{ insertST(yytext, "Keyword"); return IF;}
-"int"			{ strcpy(curtype,yytext); insertST(yytext, "Keyword"); return INT;}
-"long"			{ strcpy(curtype,yytext); insertST(yytext, "Keyword"); return LONG;}
-"return"		{ insertST(yytext, "Keyword"); return RETURN;}
-"short"			{ strcpy(curtype,yytext); insertST(yytext, "Keyword"); return SHORT;}
-"signed"		{ strcpy(curtype,yytext); insertST(yytext, "Keyword"); return SIGNED;}
-"sizeof" 		{ insertST(yytext, "Keyword"); return SIZEOF;}
-"struct"		{ strcpy(curtype,yytext);   insertST(yytext, "Keyword");  return STRUCT;}
-"unsigned"		{ insertST(yytext, "Keyword");   return UNSIGNED;}
-"void"			{ strcpy(curtype,yytext);   insertST(yytext, "Keyword");  return VOID;}
-"break"			{ insertST(yytext, "Keyword");  return BREAK;}
+"char"			{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword");return CHAR;}
+"double"		{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword"); return DOUBLE;}
+"else"			{ insertSymbolTable(yytext, "Keyword"); return ELSE;}
+"float"			{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword"); return FLOAT;}
+"while"			{ insertSymbolTable(yytext, "Keyword"); return WHILE;}
+"do"			{ insertSymbolTable(yytext, "Keyword"); return DO;}
+"for"			{ insertSymbolTable(yytext, "Keyword"); return FOR;}
+"if"			{ insertSymbolTable(yytext, "Keyword"); return IF;}
+"int"			{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword"); return INT;}
+"long"			{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword"); return LONG;}
+"return"		{ insertSymbolTable(yytext, "Keyword"); return RETURN;}
+"short"			{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword"); return SHORT;}
+"signed"		{ strcpy(currentType,yytext); insertSymbolTable(yytext, "Keyword"); return SIGNED;}
+"sizeof" 		{ insertSymbolTable(yytext, "Keyword"); return SIZEOF;}
+"struct"		{ strcpy(currentType,yytext);   insertSymbolTable(yytext, "Keyword");  return STRUCT;}
+"unsigned"		{ insertSymbolTable(yytext, "Keyword");   return UNSIGNED;}
+"void"			{ strcpy(currentType,yytext);   insertSymbolTable(yytext, "Keyword");  return VOID;}
+"break"			{ insertSymbolTable(yytext, "Keyword");  return BREAK;}
 
 
 
@@ -513,12 +535,12 @@ IN "include"
 "|"				{ return pipe_operator; }
 \=				{ return assignment_operator;}
 
-\"[^\n]*\"/[;|,|\)] 			{strcpy(curval,yytext); insertCT(yytext,"String Constant"); return string_constant;}
-\'[A-Z|a-z]\'/[;|,|\)|:] 		{strcpy(curval,yytext); insertCT(yytext,"Character Constant"); return character_constant;}
-[a-z|A-Z]([a-z|A-Z]|[0-9])*/\[ 	{strcpy(curid,yytext); insertST(yytext, "Array Identifier");  return array_identifier;}
-[1-9][0-9]*|0/[;|,|" "|\)|<|>|=|\!|\||&|\+|\-|\*|\/|\%|~|\]|\}|:|\n|\t|\^] 	{strcpy(curval,yytext); insertCT(yytext, "Number Constant"); yylval = atoi(yytext); return integer_constant;}
-([0-9]*)\.([0-9]+)/[;|,|" "|\)|<|>|=|\!|\||&|\+|\-|\*|\/|\%|~|\n|\t|\^] 	{strcpy(curval,yytext); insertCT(yytext, "Floating Constant"); return float_constant;}
-[A-Za-z_][A-Za-z_0-9]* {strcpy(curid,yytext); insertST(curid,"Identifier"); return identifier;}
+\"[^\n]*\"/[;|,|\)] 			{strcpy(currentValue,yytext); insertConstantTable(yytext,"String Constant"); return string_constant;}
+\'[A-Z|a-z]\'/[;|,|\)|:] 		{strcpy(currentValue,yytext); insertConstantTable(yytext,"Character Constant"); return character_constant;}
+[a-z|A-Z]([a-z|A-Z]|[0-9])*/\[ 	{strcpy(currentIdentifier,yytext); insertSymbolTable(yytext, "Array Identifier");  return array_identifier;}
+[1-9][0-9]*|0/[;|,|" "|\)|<|>|=|\!|\||&|\+|\-|\*|\/|\%|~|\]|\}|:|\n|\t|\^] 	{strcpy(currentValue,yytext); insertConstantTable(yytext, "Number Constant"); yylval = atoi(yytext); return integer_constant;}
+([0-9]*)\.([0-9]+)/[;|,|" "|\)|<|>|=|\!|\||&|\+|\-|\*|\/|\%|~|\n|\t|\^] 	{strcpy(currentValue,yytext); insertConstantTable(yytext, "Floating Constant"); return float_constant;}
+[A-Za-z_][A-Za-z_0-9]* {strcpy(currentIdentifier,yytext); insertSymbolTable(currentIdentifier,"Identifier"); return identifier;}
 
 (.?) {
 		if(yytext[0]=='#')
