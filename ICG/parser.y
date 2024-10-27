@@ -5,8 +5,8 @@
 	
 	void yyerror(char* s);
 	int yylex();
-	void insertSymbolTable();
-	void insertSymbolTableValue();
+	void insertSymbolTableType();
+	void insertSymbolTableValueType();
 	int flag=0;
 
 	extern char currentIdentifier[20];
@@ -117,8 +117,8 @@ variable_declaration_list
 			: variable_declaration_list ',' variable_declaration_identifier | variable_declaration_identifier;
 
 variable_declaration_identifier 
-			: identifier {if(checkDuplicate(currentIdentifier)){printf("Duplicate\n");exit(0);}insertSymbolTableNesting(currentIdentifier,currentNestingLevel); insertSymbolTable();  } vdi   
-			  | array_identifier {if(checkDuplicate(currentIdentifier)){printf("Duplicate\n");exit(0);}insertSymbolTableNesting(currentIdentifier,currentNestingLevel); insertSymbolTable();  } vdi;
+			: identifier {if(checkDuplicate(currentIdentifier)){printf("Duplicate\n");exit(0);}insertSymbolTableNesting(currentIdentifier,currentNestingLevel); insertSymbolTableType();  } vdi   
+			  | array_identifier {if(checkDuplicate(currentIdentifier)){printf("Duplicate\n");exit(0);}insertSymbolTableNesting(currentIdentifier,currentNestingLevel); insertSymbolTableType();  } vdi;
 			
 			
 
@@ -161,7 +161,7 @@ function_declaration
 			: function_declaration_type function_declaration_param_statement;
 
 function_declaration_type
-			: type_specifier identifier '('  { strcpy(currentFunctionType, currentType); strcpy(currentFunction, currentIdentifier); checkDuplicate(currentIdentifier); insertSymbolTableFunction(currentIdentifier); insertSymbolTable(); };
+			: type_specifier identifier '('  { strcpy(currentFunctionType, currentType); strcpy(currentFunction, currentIdentifier); checkDuplicate(currentIdentifier); insertSymbolTableFunction(currentIdentifier); insertSymbolTableType(); };
 
 function_declaration_param_statement
 			: {paramsCount=0;}params ')' {generateFunctionCode();} statement {generateFunctionEndCode();};
@@ -180,7 +180,7 @@ parameters_identifier_list_breakup
 			| ;
 
 param_identifier 
-			: identifier { insertSymbolTable();insertSymbolTableNesting(currentIdentifier,1); paramsCount++; } param_identifier_breakup;
+			: identifier { insertSymbolTableType();insertSymbolTableNesting(currentIdentifier,1); paramsCount++; } param_identifier_breakup;
 
 param_identifier_breakup
 			: '[' ']'
@@ -232,7 +232,7 @@ break_statement
 			: BREAK ';' ;
 
 string_initilization
-			: assignment_operator string_constant {insertSymbolTableValue();} ;
+			: assignment_operator string_constant {insertSymbolTableValueType();} ;
 
 array_initialization
 			: assignment_operator '{' array_int_declarations '}';
@@ -395,10 +395,10 @@ arguments_list
 exp : identifier {generateArgumentCode(1);} | integer_constant {generateArgumentCode(2);} | string_constant {generateArgumentCode(3);} | float_constant {generateArgumentCode(4);} | character_constant {generateArgumentCode(5);} ;
 
 constant 
-			: integer_constant 	{  insertSymbolTableValue(); generateCodeConstant(); $$=1; } 
-			| string_constant	{  insertSymbolTableValue(); generateCodeConstant();$$=-1;} 
-			| float_constant	{  insertSymbolTableValue(); generateCodeConstant();} 
-			| character_constant{  insertSymbolTableValue(); generateCodeConstant();$$=1; };
+			: integer_constant 	{  insertSymbolTableValueType(); generateCodeConstant(); $$=1; } 
+			| string_constant	{  insertSymbolTableValueType(); generateCodeConstant();$$=-1;} 
+			| float_constant	{  insertSymbolTableValueType(); generateCodeConstant();} 
+			| character_constant{  insertSymbolTableValueType(); generateCodeConstant();$$=1; };
 
 %%
 
@@ -672,12 +672,12 @@ void yyerror(char *s)
 	exit(7);
 }
 
-void insertSymbolTable()
+void insertSymbolTableType()
 {
 	insertSymbolTableType(currentIdentifier,currentType);
 }
 
-void insertSymbolTableValue()
+void insertSymbolTableValueType()
 {
 	insertSymbolTableValue(currentIdentifier,currentValue);
 }
