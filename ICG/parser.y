@@ -40,11 +40,11 @@
 	char* itoa(int num, char* str, int base);
 	void reverse(char str[], int length); 
 	void swap(char*,char*);
-	void label1();
-	void label2();
-	void label3();
-	void label4();
-	void label5();
+	void label_start_conditional();
+	void label_else_conditional();
+	void label_exit_conditional();
+	void label_loop_conditional();
+	void label_loop_end();
 	void label6();
 	void genunary();
 	void codegencon();
@@ -208,16 +208,16 @@ expression_statment
 			| ';' ;
 
 conditional_statements 
-			: IF '(' simple_expression ')' {label1();if($3!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {label2();}  conditional_statements_breakup;
+			: IF '(' simple_expression ')' {label_start_conditional();if($3!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {label_else_conditional();}  conditional_statements_breakup;
 
 conditional_statements_breakup
-			: ELSE statement {label3();}
-			| {label3();};
+			: ELSE statement {label_exit_conditional();}
+			| {label_exit_conditional();};
 
 iterative_statements 
-			: WHILE '(' {label4();} simple_expression ')' {label1();if($4!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {label5();} 
-			| FOR '(' expression ';' {label4();} simple_expression ';' {label1();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} expression ')'statement {label5();} 
-			| {label4();}DO statement WHILE '(' simple_expression ')'{label1();label5();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} ';';
+			: WHILE '(' {label_loop_conditional();} simple_expression ')' {label_start_conditional();if($4!=1){printf("Condition checking is not of type int\n");exit(0);}} statement {label_loop_end();} 
+			| FOR '(' expression ';' {label_loop_conditional();} simple_expression ';' {label_start_conditional();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} expression ')'statement {label_loop_end();} 
+			| {label_loop_conditional();}DO statement WHILE '(' simple_expression ')'{label_start_conditional();label_loop_end();if($6!=1){printf("Condition checking is not of type int\n");exit(0);}} ';';
 return_statement 
 			: RETURN ';' {if(strcmp(currfunctype,"void")) {printf("Returning void of a non-void function\n"); exit(0);}}
 			| RETURN expression ';' { 	if(!strcmp(currfunctype, "void"))
@@ -506,6 +506,7 @@ void codegencon()
 	itoa(count,buffer,10);
 	strcat(temp,buffer);
 	printf("%s = %s\n",temp,curval);
+	printf("%s = %s\n",curid,temp);
 	push(temp);
 	count++;
 }
@@ -561,9 +562,9 @@ void codeassign()
 	top = top - 2;
 }
 
-void label1()
+void label_start_conditional()
 {
-	printFnCallFlag && printf("\nlabel1 called\n");
+	printFnCallFlag && printf("\nlabel_start_conditional called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(lno,buffer,10);
@@ -572,9 +573,9 @@ void label1()
 	label[++ltop].labelvalue = lno++;
 }
 
-void label2()
+void label_else_conditional()
 {
-	printFnCallFlag && printf("\nlabel2 called\n");
+	printFnCallFlag && printf("\nlabel_else_conditional called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(lno,buffer,10);
@@ -588,9 +589,9 @@ void label2()
 	label[++ltop].labelvalue=lno++;
 }
 
-void label3()
+void label_exit_conditional()
 {
-	printFnCallFlag && printf("\nlabel3 called\n");
+	printFnCallFlag && printf("\nlabel_exit_conditional called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(label[ltop].labelvalue,buffer,10);
@@ -599,9 +600,9 @@ void label3()
 	ltop--;
 }
 
-void label4()
+void label_loop_conditional()
 {
-	printFnCallFlag && printf("\nlabel4 called\n");
+	printFnCallFlag && printf("\nlabel_loop_conditional called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(lno,buffer,10);
@@ -610,9 +611,9 @@ void label4()
 	label[++ltop].labelvalue = lno++;
 }
 
-void label5()
+void label_loop_end()
 {
-	printFnCallFlag && printf("\nlabel5 called\n");
+	printFnCallFlag && printf("\nlabel_loop_end called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(label[ltop-1].labelvalue,buffer,10);
@@ -642,18 +643,18 @@ void arggen(int i)
 	printFnCallFlag && printf("\narggen called\n");
 	if(i==1)
 	{
-		printf("refparam %s\n", curid);
+		printf("param %s\n", curid);
 	}
 	else
 	{
-		printf("refparam %s\n", curval);
+		printf("param %s\n", curval);
 	}
 }
 
 void callgen()
 {
 	printFnCallFlag && printf("\ncallgen called\n");
-	printf("refparam result\n");
+	printf("param result\n");
 	push("result");
 	printf("call %s, %d\n",currfunccall,call_params_count);
 }

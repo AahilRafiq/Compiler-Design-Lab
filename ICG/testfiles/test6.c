@@ -4,7 +4,7 @@
 
 int main()
 {
-    int temp = 0;
+    int temp;
     for (temp = 0; temp < 5; temp++)
     {
         printf("hello fo loop\n");
