@@ -8,6 +8,7 @@
 	void ins();
 	void insV();
 	int flag=0;
+	int printFnCallFlag = 0;
 
 	extern char curid[20];
 	extern char curtype[20];
@@ -420,11 +421,13 @@ struct stack
 
 void push(char *x)
 {
+	printFnCallFlag && printf("\npush called\n");
 	strcpy(s[++top].value,x);
 }
 
 void swap(char *x, char *y)
 {
+	printFnCallFlag && printf("\nswap called\n");
 	char temp = *x;
 	*x = *y;
 	*y = temp;
@@ -432,56 +435,56 @@ void swap(char *x, char *y)
 
 void reverse(char str[], int length) 
 { 
-    int start = 0; 
-    int end = length -1; 
-    while (start < end) 
-    { 
-        swap((str+start), (str+end)); 
-        start++; 
-        end--; 
-    } 
+	printFnCallFlag && printf("\nreverse called\n");
+	int start = 0; 
+	int end = length -1; 
+	while (start < end) 
+	{ 
+		swap((str+start), (str+end)); 
+		start++; 
+		end--; 
+	} 
 } 
   
 char* itoa(int num, char* str, int base) 
 { 
-    int i = 0; 
-    int isNegative = 0; 
+	printFnCallFlag && printf("\nitoa called\n");
+	int i = 0; 
+	int isNegative = 0; 
   
-   
-    if (num == 0) 
-    { 
-        str[i++] = '0'; 
-        str[i] = '\0'; 
-        return str; 
-    } 
+	if (num == 0) 
+	{ 
+		str[i++] = '0'; 
+		str[i] = '\0'; 
+		return str; 
+	} 
   
-    if (num < 0 && base == 10) 
-    { 
-        isNegative = 1; 
-        num = -num; 
-    } 
+	if (num < 0 && base == 10) 
+	{ 
+		isNegative = 1; 
+		num = -num; 
+	} 
   
-   
-    while (num != 0) 
-    { 
-        int rem = num % base; 
-        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
-        num = num/base; 
-    } 
+	while (num != 0) 
+	{ 
+		int rem = num % base; 
+		str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
+		num = num/base; 
+	} 
   
-    if (isNegative) 
-        str[i++] = '-'; 
+	if (isNegative) 
+		str[i++] = '-'; 
   
-    str[i] = '\0'; 
+	str[i] = '\0'; 
   
-   
-    reverse(str, i); 
+	reverse(str, i); 
   
-    return str; 
+	return str; 
 } 
 
 void codegen()
 {
+	printFnCallFlag && printf("\ncodegen called\n");
 	strcpy(temp,"t");
 	char buffer[100];
 	itoa(count,buffer,10);
@@ -494,6 +497,7 @@ void codegen()
 
 void codegencon()
 {
+	printFnCallFlag && printf("\ncodegencon called\n");
 	strcpy(temp,"t");
 	char buffer[100];
 	itoa(count,buffer,10);
@@ -501,11 +505,11 @@ void codegencon()
 	printf("%s = %s\n",temp,curval);
 	push(temp);
 	count++;
-	
 }
 
 int isunary(char *s)
 {
+	printFnCallFlag && printf("\nisunary called\n");
 	if(strcmp(s, "--")==0 || strcmp(s, "++")==0)
 	{
 		return 1;
@@ -515,6 +519,7 @@ int isunary(char *s)
 
 void genunary()
 {
+	printFnCallFlag && printf("\ngenunary called\n");
 	char temp1[100], temp2[100], temp3[100];
 	strcpy(temp1, s[top].value);
 	strcpy(temp2, s[top-1].value);
@@ -548,12 +553,14 @@ void genunary()
 
 void codeassign()
 {
+	printFnCallFlag && printf("\ncodeassign called\n");
 	printf("%s = %s\n",s[top-2].value,s[top].value);
 	top = top - 2;
 }
 
 void label1()
 {
+	printFnCallFlag && printf("\nlabel1 called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(lno,buffer,10);
@@ -564,6 +571,7 @@ void label1()
 
 void label2()
 {
+	printFnCallFlag && printf("\nlabel2 called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(lno,buffer,10);
@@ -579,17 +587,18 @@ void label2()
 
 void label3()
 {
+	printFnCallFlag && printf("\nlabel3 called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(label[ltop].labelvalue,buffer,10);
 	strcat(temp,buffer);
 	printf("%s:\n",temp);
 	ltop--;
-	
 }
 
 void label4()
 {
+	printFnCallFlag && printf("\nlabel4 called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(lno,buffer,10);
@@ -598,9 +607,9 @@ void label4()
 	label[++ltop].labelvalue = lno++;
 }
 
-
 void label5()
 {
+	printFnCallFlag && printf("\nlabel5 called\n");
 	strcpy(temp,"L");
 	char buffer[100];
 	itoa(label[ltop-1].labelvalue,buffer,10);
@@ -611,34 +620,36 @@ void label5()
 	strcat(temp,buffer);
 	printf("%s:\n",temp);
 	ltop = ltop - 2;
-    
-   
 }
 
 void funcgen()
 {
+	printFnCallFlag && printf("\nfuncgen called\n");
 	printf("func begin %s\n",currfunc);
 }
 
 void funcgenend()
 {
+	printFnCallFlag && printf("\nfuncgenend called\n");
 	printf("func end\n\n");
 }
 
 void arggen(int i)
 {
-    if(i==1)
-    {
-	printf("refparam %s\n", curid);
+	printFnCallFlag && printf("\narggen called\n");
+	if(i==1)
+	{
+		printf("refparam %s\n", curid);
 	}
 	else
 	{
-	printf("refparam %s\n", curval);
+		printf("refparam %s\n", curval);
 	}
 }
 
 void callgen()
 {
+	printFnCallFlag && printf("\ncallgen called\n");
 	printf("refparam result\n");
 	push("result");
 	printf("call %s, %d\n",currfunccall,call_params_count);

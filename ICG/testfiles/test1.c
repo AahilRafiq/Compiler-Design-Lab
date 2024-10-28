@@ -5,9 +5,11 @@
 void main()
 {
 	int x=3,y=2;
-	while(x>y){
-		printf("hello world");
-		x--;
+	int arr[3];
+	if(x>y) {
+		printf("gg");
+	} else {
+		int a = 2;
 	}
 
 }

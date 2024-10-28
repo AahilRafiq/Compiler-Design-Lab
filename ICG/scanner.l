@@ -398,37 +398,33 @@
 		
 	}
 
-	void printST()
-	{
-		printf("%10s | %15s | %10s | %10s | %10s | %15s | %10s |\n","Symbol Name", "Class", "Type","Value", "Line No.", "Nesting Count", "Params Count");
-		for(int i=0;i<120;i++) {
-			printf("_");
+	void printST() {
+		printf("%10s | %15s | %10s | %10s | %10s | %10s |\n", "Symbol Name", "Class", "Type", "Value", "Line No.", "Params Count");
+		for (int i = 0; i < 105; i++) {
+			printf("-");
 		}
 		printf("\n");
-		for(int i = 0 ; i < 1007 ; i++)
-		{
-			if(ST[i].length == 0)
-			{
+
+		for (int i = 0; i < 1007; i++) {
+			if (ST[i].length == 0) {
 				continue;
 			}
-			printf("%10s | %15s | %10s | %10s | %10d | %15d | %10d |\n",ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].nestval, ST[i].params_count);
+			printf("%10s | %15s | %10s | %10s | %10d | %10d |\n", ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].params_count);
 		}
-    }
+	}
 
-
-	void printCT()
-	{
-		printf("%10s | %15s\n","constant name", "Type");
-		for(int i=0;i<110;i++) {
-			printf("_");
+	void printCT() {
+		printf("%10s | %15s\n", "constant name", "Type");
+		for (int i = 0; i < 110; i++) {
+			printf("-");
 		}
 		printf("\n");
-		for(int i = 0 ; i < 1007 ; i++)
-		{
-			if(CT[i].length == 0)
-				continue;
 
-			printf("%10s | %15s\n",CT[i].name, CT[i].type);
+		for (int i = 0; i < 1007; i++) {
+			if (CT[i].length == 0) {
+				continue;
+			}
+			printf("%10s | %15s\n", CT[i].name, CT[i].type);
 		}
 	}
 	char curid[20];
