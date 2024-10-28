@@ -7,6 +7,7 @@
 	int yylex();
 	void ins();
 	void insV();
+	int curr_dimension = 0;
 	int flag=0;
 	int printFnCallFlag = 0;
 
@@ -14,6 +15,7 @@
 	extern char curtype[20];
 	extern char curval[20];
 	extern int currnest;
+	void insertSTDimension(char*, int);
 	void deletedata (int );
 	int checkscope(char*);
 	int check_id_is_func(char *);
@@ -119,19 +121,20 @@ variable_declaration_list
 
 variable_declaration_identifier 
 			: identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,currnest); ins();  } vdi   
-			  | array_identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,currnest); ins();  } vdi;
-			
+			//   | array_identifier {if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,currnest); ins();  } vdi;
+			 | array_identifier {curr_dimension=0;if(duplicate(curid)){printf("Duplicate\n");exit(0);}insertSTnest(curid,currnest); ins();  } vdi;	
 			
 
 vdi : identifier_array_type | assignment_operator simple_expression  ; 
 
 identifier_array_type
-			: '[' initilization_params
+			: '[' initilization_params {curr_dimension++;insertSTDimension(curid,curr_dimension);}
 			| ;
 
 initilization_params
-			: integer_constant ']' initilization {if($$ < 1) {printf("Wrong array size\n"); exit(0);} }
-			| ']' string_initilization;
+			: integer_constant ']' identifier_array_type initilization {if($$ < 1) {printf("Wrong array size\n"); exit(0);} }
+			/* | integer_constant ']' identifier_array_type {if($$ < 1) {printf("Wrong array size\n"); exit(0);} } */
+			;
 
 initilization
 			: string_initilization

@@ -3,6 +3,9 @@
 	#include <string.h>
 	#include <stdlib.h>
 	#include "y.tab.h"
+	#define MAX_TABLE_SIZE 1000
+
+	extern int curr_dimension;
 
 	struct symboltable
 	{
@@ -10,6 +13,7 @@
 		char class[100];
 		char type[100];
 		char value[100];
+		int dimension;
 		int nestval;
 		int lineno;
 		int length;
@@ -25,6 +29,17 @@
 
 	int currnest = 0;
 	extern int yylval;
+
+	void insertSTDimension(char *str1, int dim)
+	{
+		for(int i = 0 ; i < 1007 ; i++)
+		{
+			if(strcmp(ST[i].name,str1)==0)
+			{
+				ST[i].dimension = dim;
+			}
+		}
+	}
 
 	int hash(char *str)
 	{
@@ -398,35 +413,45 @@
 		
 	}
 
-	void printST() {
-		printf("%10s | %15s | %10s | %10s | %10s | %10s |\n", "Symbol Name", "Class", "Type", "Value", "Line No.", "Params Count");
-		for (int i = 0; i < 105; i++) {
-			printf("-");
-		}
-		printf("\n");
+	void printST()
+{
+    // Boxed table header
+    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+    printf("| %-15s | %-20s | %-10s | %-10s | %-8s | %-15s | %-10s |\n",
+           "Symbol Name", "Class", "Type", "Value", "Line No.", "Count of Params", "Dimension");
+    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
 
-		for (int i = 0; i < 1007; i++) {
-			if (ST[i].length == 0) {
-				continue;
-			}
-			printf("%10s | %15s | %10s | %10s | %10d | %10d |\n", ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].params_count);
-		}
-	}
+    // Print each symbol in the table
+    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
+        if (ST[i].length == 0) {
+            continue;
+        }
+        printf("| %-15s | %-20s | %-10s | %-10s | %-8d | %-15d | %-10d |\n",
+               ST[i].name, ST[i].class, ST[i].type, ST[i].value, ST[i].lineno, ST[i].params_count, ST[i].dimension);
+    }
 
-	void printCT() {
-		printf("%10s | %15s\n", "constant name", "Type");
-		for (int i = 0; i < 110; i++) {
-			printf("-");
-		}
-		printf("\n");
+    // Bottom border of the table
+    printf("+-----------------+------------------------+------------+------------+----------+-----------------+------------+\n");
+}
 
-		for (int i = 0; i < 1007; i++) {
-			if (CT[i].length == 0) {
-				continue;
-			}
-			printf("%10s | %15s\n", CT[i].name, CT[i].type);
-		}
-	}
+void printCT()
+{
+    // Boxed table header for constants
+    printf("+-----------------+-----------------+\n");
+    printf("| %-15s | %-15s |\n", "Constant Name", "Constant Type");
+    printf("+-----------------+-----------------+\n");
+
+    // Print each constant in the table
+    for (int i = 0; i < MAX_TABLE_SIZE; i++) {
+        if (CT[i].length == 0) {
+            continue;
+        }
+        printf("| %-15s | %-15s |\n", CT[i].name, CT[i].type);
+    }
+
+    // Bottom border of the table
+    printf("+-----------------+-----------------+\n");
+}
 	char curid[20];
 	char curtype[20];
 	char curval[20];
