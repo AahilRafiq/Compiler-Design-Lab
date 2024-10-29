@@ -1,5 +1,3 @@
-// exmaple of duplication b assigned twice
-
 #include <stdio.h>
 
 void increase_number(int x)
