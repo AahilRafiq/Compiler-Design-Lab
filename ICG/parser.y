@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
+	#include "icg.h"
 	
 	void yyerror(char* s);
 	int yylex();
@@ -16,6 +17,8 @@
 	extern char curtype[20];
 	extern char curval[20];
 	extern int currnest;
+	void insert_icg(char *instr);
+	void print_icg();
 	void insertSTDimension(char*, int);
 	void deletedata (int );
 	int checkscope(char*);
@@ -492,7 +495,11 @@ void codegen()
 	char buffer[100];
 	itoa(count,buffer,10);
 	strcat(temp,buffer);
-	printf("%s = %s %s %s\n",temp,s[top-2].value,s[top-1].value,s[top].value);
+	// printf("%s = %s %s %s\n",temp,s[top-2].value,s[top-1].value,s[top].value);
+
+	char instr[100];
+	sprintf(instr, "%s = %s %s %s", temp, s[top-2].value, s[top-1].value, s[top].value);
+	insert_icg(instr);
 	top = top - 2;
 	strcpy(s[top].value,temp);
 	count++; 
@@ -505,8 +512,15 @@ void codegencon()
 	char buffer[100];
 	itoa(count,buffer,10);
 	strcat(temp,buffer);
-	printf("%s = %s\n",temp,curval);
-	printf("%s = %s\n",curid,temp);
+	// printf("%s = %s\n",temp,curval);
+	// printf("%s = %s\n",curid,temp);
+
+	char instr[100];
+	sprintf(instr, "%s = %s", temp, curval);
+	insert_icg(instr);
+	sprintf(instr, "%s = %s", curid, temp);
+	insert_icg(instr);
+
 	push(temp);
 	count++;
 }
@@ -542,14 +556,26 @@ void genunary()
 
 	if(strcmp(temp2,"--")==0)
 	{
-		printf("%s = %s - 1\n", temp, temp1);
-		printf("%s = %s\n", temp1, temp);
+		// printf("%s = %s - 1\n", temp, temp1);
+		// printf("%s = %s\n", temp1, temp);
+
+		char instr[100];
+		sprintf(instr, "%s = %s - 1", temp, temp1);
+		insert_icg(instr);
+		sprintf(instr, "%s = %s", temp1, temp);
+		insert_icg(instr);
 	}
 
 	if(strcmp(temp2,"++")==0)
 	{
-		printf("%s = %s + 1\n", temp, temp1);
-		printf("%s = %s\n", temp1, temp);
+		// printf("%s = %s + 1\n", temp, temp1);
+		// printf("%s = %s\n", temp1, temp);
+
+		char instr[100];
+		sprintf(instr, "%s = %s + 1", temp, temp1);
+		insert_icg(instr);
+		sprintf(instr, "%s = %s", temp1, temp);
+		insert_icg(instr);
 	}
 
 	top = top -2;
@@ -558,7 +584,11 @@ void genunary()
 void codeassign()
 {
 	printFnCallFlag && printf("\ncodeassign called\n");
-	printf("%s = %s\n",s[top-2].value,s[top].value);
+	// printf("%s = %s\n",s[top-2].value,s[top].value);
+
+	char instr[100];
+	sprintf(instr, "%s = %s", s[top-2].value, s[top].value);
+	insert_icg(instr);
 	top = top - 2;
 }
 
@@ -569,7 +599,11 @@ void label_start_conditional()
 	char buffer[100];
 	itoa(lno,buffer,10);
 	strcat(temp,buffer);
-	printf("IF not %s GoTo %s\n",s[top].value,temp);
+	// printf("IF not %s GoTo %s\n",s[top].value,temp);
+
+	char instr[100];
+	sprintf(instr, "IF not %s GoTo %s", s[top].value, temp);
+	insert_icg(instr);
 	label[++ltop].labelvalue = lno++;
 }
 
@@ -580,11 +614,19 @@ void label_else_conditional()
 	char buffer[100];
 	itoa(lno,buffer,10);
 	strcat(temp,buffer);
-	printf("GoTo %s\n",temp);
+	// printf("GoTo %s\n",temp);
+
+	char instr[100];
+	sprintf(instr, "GoTo %s", temp);
+	insert_icg(instr);
+
 	strcpy(temp,"L");
 	itoa(label[ltop].labelvalue,buffer,10);
 	strcat(temp,buffer);
-	printf("%s:\n",temp);
+	// printf("%s:\n",temp);
+
+	sprintf(instr, "%s:", temp);
+	insert_icg(instr);
 	ltop--;
 	label[++ltop].labelvalue=lno++;
 }
@@ -596,7 +638,11 @@ void label_exit_conditional()
 	char buffer[100];
 	itoa(label[ltop].labelvalue,buffer,10);
 	strcat(temp,buffer);
-	printf("%s:\n",temp);
+	// printf("%s:\n",temp);
+
+	char instr[100];
+	sprintf(instr, "%s:", temp);
+	insert_icg(instr);
 	ltop--;
 }
 
@@ -607,7 +653,12 @@ void label_loop_conditional()
 	char buffer[100];
 	itoa(lno,buffer,10);
 	strcat(temp,buffer);
-	printf("%s:\n",temp);
+	// printf("%s:\n",temp);
+
+	char instr[100];
+	sprintf(instr, "%s:", temp);
+	insert_icg(instr);
+
 	label[++ltop].labelvalue = lno++;
 }
 
@@ -618,24 +669,40 @@ void label_loop_end()
 	char buffer[100];
 	itoa(label[ltop-1].labelvalue,buffer,10);
 	strcat(temp,buffer);
-	printf("GoTo %s:\n",temp);
+	// printf("GoTo %s:\n",temp);
+
+	char instr[100];
+	sprintf(instr, "GoTo %s", temp);
+	insert_icg(instr);
+
 	strcpy(temp,"L");
 	itoa(label[ltop].labelvalue,buffer,10);
 	strcat(temp,buffer);
-	printf("%s:\n",temp);
+	// printf("%s:\n",temp);
+
+	sprintf(instr, "%s:", temp);
+	insert_icg(instr);
 	ltop = ltop - 2;
 }
 
 void funcgen()
 {
 	printFnCallFlag && printf("\nfuncgen called\n");
-	printf("func begin %s\n",currfunc);
+	// printf("func begin %s\n",currfunc);
+
+	char instr[100];
+	sprintf(instr, "func begin %s", currfunc);
+	insert_icg(instr);
 }
 
 void funcgenend()
 {
 	printFnCallFlag && printf("\nfuncgenend called\n");
-	printf("func end\n\n");
+	// printf("func end\n\n");
+
+	char instr[100];
+	sprintf(instr, "func end\n");
+	insert_icg(instr);
 }
 
 void arggen(int i)
@@ -643,18 +710,31 @@ void arggen(int i)
 	printFnCallFlag && printf("\narggen called\n");
 	if(i==1)
 	{
-		printf("param %s\n", curid);
+		// printf("param %s\n", curid);
+
+		char instr[100];
+		sprintf(instr, "param %s", curid);
+		insert_icg(instr);
 	}
 	else
 	{
-		printf("param %s\n", curval);
+		// printf("param %s\n", curval);
+
+		char instr[100];
+		sprintf(instr, "param %s", curval);
+		insert_icg(instr);
 	}
 }
 
 void callgen()
 {
 	printFnCallFlag && printf("\ncallgen called\n");
-	printf("call %s, %d\n",currfunccall,call_params_count);
+	// printf("call %s, %d\n",currfunccall,call_params_count);
+
+	char instr[100];
+	sprintf(instr, "call %s, %d", currfunccall, call_params_count);
+	insert_icg(instr);
+
 }
 
 
@@ -666,6 +746,7 @@ int main(int argc , char **argv)
 
 	if(flag == 0)
 	{
+		print_icg();
 		printf( "PASSED: ICG Phase\n" );
 		printf("%30s"  "PRINTING SYMBOL TABLE"  "\n", " ");
 		printf("%30s %s\n", " ", "______________");
