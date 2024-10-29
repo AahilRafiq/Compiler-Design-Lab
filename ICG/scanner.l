@@ -118,7 +118,7 @@
 		{
 			if(strcmp(ST[lookupST(str1)].class,"Identifier")==0 && strcmp(str2,"Array Identifier")==0)
 			{
-				printf("Error use of array\n");
+				printf("Line %d : Error use of array\n",yylineno);
 				exit(0);
 			}	
 			return;
@@ -373,7 +373,7 @@
 		{
 			if(strcmp(ST[i].name, str) == 0 && strcmp(ST[i].class, "Function") == 0)
 			{
-				printf("Function redeclaration not allowed\n");
+				printf("Line %d : Function redeclaration not allowed\n",yylineno);
 				exit(0);
 			}
 		}
@@ -395,7 +395,7 @@
 	{
 		if(!strcmp(type_specifier, "void"))
 		{
-			printf("Parameters cannot be of type void\n");
+			printf("Line %d : Parameters cannot be of type void\n",yylineno);
 			exit(0);
 		}
 		return 0;

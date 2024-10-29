@@ -1,7 +1,9 @@
 #!/bin/bash
 
 function run() {
-	flex scanner.l && yacc -d parser.y && gcc y.tab.c lex.yy.c -w
+	flex scanner.l 
+	yacc -d parser.y 
+	gcc y.tab.c lex.yy.c -w
 	local total_testcases="$1"
 	echo "Running Test cases for ICG phase $total_testcases"
 	local start=1
