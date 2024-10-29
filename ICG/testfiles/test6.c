@@ -1,25 +1,23 @@
-// to work in all kind of loops for, while, do while
-
 #include <stdio.h>
 
 int main()
 {
-    int temp;
-    for (temp = 0; temp < 5; temp++)
+    int i;
+    for (i = 0; i < 5; i++)
     {
-        printf("hello fo loop\n");
+        printf("for loop printing\n");
     }
 
-    while (temp > 0)
+    while (i > 0)
     {
 
-        printf("hello while loop\n");
-        temp = temp - 1;
+        printf("while loop printing\n");
+        i = i - 1;
     }
 
     do
     {
-        printf("hello do while loop\n");
-        temp = temp - 1;
-    } while (temp > 10);
+        printf("do while loop printing\n");
+        i = i - 1;
+    } while (i > 10);
 }

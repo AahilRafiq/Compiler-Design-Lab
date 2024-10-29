@@ -1,4 +1,3 @@
-// passing wrong parameters to a function
 
 #include <stdio.h>
 

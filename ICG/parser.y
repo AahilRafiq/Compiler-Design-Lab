@@ -654,8 +654,6 @@ void arggen(int i)
 void callgen()
 {
 	printFnCallFlag && printf("\ncallgen called\n");
-	printf("param result\n");
-	push("result");
 	printf("call %s, %d\n",currfunccall,call_params_count);
 }
 

@@ -1,17 +1,15 @@
-// calculating cube, but duplicate assignment here
-
 #include <stdio.h>
-int cube(int v)
+int sq(int num)
 {
-	int v = 3;
-	int cube = v * v * v;
-	return cube;
+	int num = 3;
+	int sq = num * num;
+	return sq;
 }
 
 int main()
 {
-	int x = 3;
-	int ans = cube(x);
+	int num = 3;
+	int ans = sq(num);
 	printf("answer: %d", ans);
 
 	return 0;

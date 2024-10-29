@@ -1,9 +1,8 @@
-// example of syntax error 
 
 #include <stdio.h>
 
 void main()
 {
-    int a;
-    a *a = a;
+    int a = 45;
+    int b == asdf ;
 }

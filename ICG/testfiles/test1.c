@@ -1,15 +1,12 @@
-// simple hello world printing in while loop
+// simple printing in while loop
 
 #include <stdio.h>
 
 void main()
 {
-	int x=3,y=2;
-	int arr[3][2];
-	if(x>y) {
-		printf("gg");
-	} else {
-		int a = 2;
+	int a=2 , b=6;
+	while(a<b) {
+		printf("example1\n");
+		a++;
 	}
-
 }

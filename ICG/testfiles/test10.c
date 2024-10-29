@@ -1,4 +1,3 @@
-//simple if else ladder
 
 #include <stdio.h>
 int main()
